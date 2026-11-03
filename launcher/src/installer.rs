@@ -1,13 +1,13 @@
 //! Per-user setup on Windows, no administrator needed.
 //!
 //! `horizon-launcher-setup.exe` (the launcher's own binary under another name, made by the
-//! release workflow) copies itself to `%LOCALAPPDATA%\Programs\Horizon Launcher\horizon-launcher.exe`,
+//! release workflow) copies itself to `%LOCALAPPDATA%\Programs\Oxidum Launcher\horizon-launcher.exe`,
 //! makes the Start menu shortcut (and the desktop one if asked) and the Uninstall entry under HKCU,
 //! and starts the installed copy. `horizon-launcher.exe uninstall` takes it all away again: the
 //! launcher's data folder only when asked, the game's folder never.
 //!
 //! Nothing here deletes a folder it didn't make: the install folder is always called
-//! "Horizon Launcher" ([`folder_for`]) and is removed with `remove_dir`, which only takes an empty one.
+//! "Oxidum Launcher" ([`folder_for`]) and is removed with `remove_dir`, which only takes an empty one.
 //!
 //! Command lines (handled in `main` before the CLI parser, so MCP never sees them):
 //! `horizon-launcher-setup.exe` (window), `... setup --quiet [--dir <folder>] [--desktop-shortcut]`,
@@ -20,10 +20,10 @@ use std::path::{Path, PathBuf};
 use winreg::enums::{HKEY_CURRENT_USER, KEY_READ, KEY_WRITE};
 use winreg::RegKey;
 
-pub const APP_NAME: &str = "Horizon Launcher";
+pub const APP_NAME: &str = "Oxidum Launcher";
 const BINARY: &str = "horizon-launcher.exe";
-const PUBLISHER: &str = "Horizon";
-const ABOUT_URL: &str = "https://playhorizon.dev";
+const PUBLISHER: &str = "Oxidum";
+const ABOUT_URL: &str = "https://github.com/LeahRCS/horizon-free";
 const UNINSTALL_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\HorizonLauncher";
 const OWN_KEY: &str = r"Software\Horizon\Launcher";
 const ASIDE_PREFIX: &str = "horizon-launcher-uninstall-";
@@ -47,7 +47,7 @@ pub enum Step {
 
 #[derive(Clone, Debug)]
 pub struct Options {
-    /// Where the launcher goes (always a folder called "Horizon Launcher").
+    /// Where the launcher goes (always a folder called "Oxidum Launcher").
     pub dir: PathBuf,
     pub desktop: bool,
     /// Uninstall only: also delete the launcher's data folder.
@@ -104,7 +104,7 @@ pub fn window_mode() -> Option<Mode> {
     }
 }
 
-/// `%LOCALAPPDATA%\Programs\Horizon Launcher`; `HORIZON_LAUNCHER_SETUP_DIR` replaces it (tests).
+/// `%LOCALAPPDATA%\Programs\Oxidum Launcher`; `HORIZON_LAUNCHER_SETUP_DIR` replaces it (tests).
 pub fn default_dir() -> PathBuf {
     if let Some(dir) = std::env::var_os("HORIZON_LAUNCHER_SETUP_DIR").filter(|d| !d.is_empty()) {
         return folder_for(Path::new(&dir));
@@ -115,7 +115,7 @@ pub fn default_dir() -> PathBuf {
         .join(APP_NAME)
 }
 
-/// The install folder for a folder the player picked: always one called "Horizon Launcher", so
+/// The install folder for a folder the player picked: always one called "Oxidum Launcher", so
 /// uninstalling never has to guess what is ours.
 pub fn folder_for(chosen: &Path) -> PathBuf {
     if chosen
@@ -321,7 +321,7 @@ fn remove_all(path: &Path, left: &mut Vec<String>) {
 pub fn uninstall(remove_data: bool, progress: impl Fn(Step, f32)) -> Result<Vec<String>, String> {
     clean_temp();
     let dir = registered()
-        .ok_or("Horizon Launcher is not installed for this account.")?
+        .ok_or("Oxidum Launcher is not installed for this account.")?
         .dir;
     let exe = dir.join(BINARY);
     let own = backend::exe_path().to_path_buf();
@@ -491,7 +491,7 @@ mod tests {
     fn the_install_folder_is_always_ours() {
         assert_eq!(
             folder_for(Path::new(r"C:\Games")),
-            PathBuf::from(r"C:\Games\Horizon Launcher")
+            PathBuf::from(r"C:\Games\Oxidum Launcher")
         );
         assert_eq!(
             folder_for(Path::new(r"C:\Games\horizon launcher")),
@@ -526,10 +526,10 @@ mod tests {
     fn the_shell_reads_the_target_of_the_shortcut_it_gets() {
         let dir = std::env::temp_dir().join(format!("horizon-link-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
-        let exe = dir.join("Horizon Launcher").join("horizon-launcher.exe");
+        let exe = dir.join("Oxidum Launcher").join("horizon-launcher.exe");
         fs::create_dir_all(exe.parent().unwrap()).unwrap();
         fs::write(&exe, b"x").unwrap();
-        let link = dir.join("Horizon Launcher.lnk");
+        let link = dir.join("Oxidum Launcher.lnk");
         write_link(&link, &exe).unwrap();
         // The bug this guards: a link whose target the shell read as empty, so a double click did nothing.
         assert_eq!(
