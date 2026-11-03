@@ -238,10 +238,7 @@ mod tests {
         assert!(install_in(&data, Path::new("/opt/a/horizon-launcher")).unwrap());
         assert!(!install_in(&data, Path::new("/opt/a/horizon-launcher")).unwrap());
         let svg = data.join("icons/hicolor/scalable/apps/horizon-free.svg");
-        assert!(fs::read(&png).unwrap().starts_with(b"\x89PNG"));
-        assert!(data
-            .join("icons/hicolor/scalable/apps/horizon.svg")
-            .exists());
+        assert!(fs::read_to_string(&svg).unwrap().starts_with("<svg"));
         assert!(install_in(&data, Path::new("/opt/b/horizon-launcher")).unwrap());
         let entry = fs::read_to_string(data.join("applications").join(LAUNCHER_ENTRY)).unwrap();
         assert!(entry.contains("Exec=\"/opt/b/horizon-launcher\""));
