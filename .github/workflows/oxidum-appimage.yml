@@ -47,6 +47,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev libfontconfig-dev libvulkan-dev libasound2-dev patchelf
+      - name: Validate Oxidum overlay against upstream
+        working-directory: .
+        run: |
+          python3 -m py_compile tools/fork/apply_overlay.py
+          temp="$RUNNER_TEMP/oxidum-overlay-test"
+          git clone --depth 1 https://github.com/0CYBER/horizon-free.git "$temp"
+          mkdir -p "$temp/packaging/icons/hicolor/scalable/apps"
+          cp packaging/icons/hicolor/scalable/apps/oxidum.svg "$temp/packaging/icons/hicolor/scalable/apps/oxidum.svg"
+          (cd "$temp" && python3 "$GITHUB_WORKSPACE/tools/fork/apply_overlay.py")
+          grep -Fq 'LAUNCHER_REPO: &str = "LeahRCS/horizon-free"' "$temp/launcher/src/backend.rs"
+          grep -Fq 'oxidum-linux-x86_64.AppImage' "$temp/launcher/src/backend.rs"
+          grep -Fq 'title: Some("Oxidum".into())' "$temp/launcher/src/titlebar.rs"
+          grep -Fq 'Icon=oxidum' "$temp/packaging/linux/horizon-launcher.desktop"
       - name: Test launcher
         run: cargo test --release --locked
       - name: Build launcher
