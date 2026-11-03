@@ -3693,6 +3693,7 @@ impl Launcher {
                         &t,
                     ))
                     .child(self.accent_row(cx))
+                    .children(self.launcher_gpu_row(cx))
                     .child(self.home_background_row(cx))
                     .child(self.language_row(cx))
                     .child(self.while_playing_row(n + 3, cx))
