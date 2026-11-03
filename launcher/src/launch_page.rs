@@ -449,9 +449,9 @@ impl Launcher {
                 let legacy = now.dedicated_gpu.then(|| {
                     gpus.iter()
                         .find(|gpu| !gpu.boot_vga)
-                        .map(|gpu| gpu.id.as_str())
+                        .map(|gpu| gpu.id.clone())
                 }).flatten();
-                let current = now.gpu.as_deref().or(legacy);
+                let current = now.gpu.clone().or(legacy);
                 let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
                 choices = choices.child(
                     button(
@@ -471,7 +471,7 @@ impl Launcher {
                 );
                 for (index, gpu) in gpus.into_iter().enumerate() {
                     let id = gpu.id.clone();
-                    let selected = current == Some(id.as_str());
+                    let selected = current.as_deref() == Some(id.as_str());
                     let label = match gpu.boot_vga {
                         true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
                         false => gpu.name.clone(),
