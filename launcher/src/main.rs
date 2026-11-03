@@ -1341,7 +1341,7 @@ impl Launcher {
                                 .and_then(|since| backend::crash_report_since(&home, since));
                             if error.is_some() && report.is_none() && self.switched_to_dx12() {
                                 self.client_error = Some(
-                                    "Horizon's Vulkan renderer crashed while starting on this \
+                                    "Oxidum's Vulkan renderer crashed while starting on this \
                                      graphics card, so the game now uses DirectX 12. Press Play \
                                      to start it again. Video Settings > Graphics API switches \
                                      back."
@@ -1425,7 +1425,7 @@ impl Launcher {
         for home in homes {
             match backend::switch_to_dx12(&home) {
                 Ok(changed) => switched |= changed,
-                Err(e) => eprintln!("Horizon launcher: could not switch to DirectX 12: {e}"),
+                Err(e) => eprintln!("Oxidum launcher: could not switch to DirectX 12: {e}"),
             }
         }
         switched
@@ -3081,7 +3081,7 @@ impl Launcher {
                 &[("version", &version)],
             ),
             Some(true) => trf(
-                "Not prepared. Horizon can download Minecraft {version} from Mojang for your account, or use your own install.",
+                "Not prepared. Oxidum can download Minecraft {version} from Mojang for your account, or use your own install.",
                 &[("version", &version)],
             ),
             Some(false) => trf(
@@ -3158,7 +3158,7 @@ impl Launcher {
             || {
                 div()
                     .child(if owner {
-                        tr("None needed: Horizon downloads Minecraft from Mojang for your account.")
+                        tr("None needed: Oxidum downloads Minecraft from Mojang for your account.")
                     } else {
                         tr("Not found. Choose the folder where your launcher keeps Minecraft.")
                     })
@@ -4163,7 +4163,7 @@ impl Launcher {
             }
             Some(SignInState::Done(Err(e))) => div().text_color(t.danger).child(e.clone()),
             None if self.accounts.accounts.is_empty() => div().child(tr(
-                "Horizon needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.",
+                "Oxidum needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.",
             )),
             None => div().child(tr("Add another account.")),
         };
