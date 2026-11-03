@@ -5253,6 +5253,43 @@ fn menus() -> Vec<Menu> {
     ]
 }
 
+#[cfg(target_os = "linux")]
+fn apply_launcher_gpu(preference: Option<bool>) {
+    const PRIME_ENV: [&str; 4] = [
+        "__NV_PRIME_RENDER_OFFLOAD",
+        "__VK_LAYER_NV_optimus",
+        "__GLX_VENDOR_LIBRARY_NAME",
+        "DRI_PRIME",
+    ];
+    match preference {
+        // System: preserve exactly how the desktop/AppImage/terminal started Oxidum. This keeps
+        // existing prime-run wrappers and distro-specific GPU environment working unchanged.
+        None => {}
+        // Integrated/default on a hybrid system: explicitly cancel inherited PRIME offload.
+        Some(false) => {
+            for key in PRIME_ENV {
+                std::env::remove_var(key);
+            }
+        }
+        // Dedicated: use the same tested PRIME variables as launched game instances.
+        Some(true) => {
+            let found = horizon_launcher::launch::Found::here();
+            if found.two_gpus {
+                for key in PRIME_ENV {
+                    std::env::remove_var(key);
+                }
+                let launch = horizon_launcher::launch::Launch {
+                    dedicated_gpu: true,
+                    ..Default::default()
+                };
+                for (key, value) in horizon_launcher::launch::switch_env(&launch, &found) {
+                    std::env::set_var(key, value);
+                }
+            }
+        }
+    }
+}
+
 fn main() {
     if let Err(error) = console::attach_for_cli() {
         eprintln!("Could not restore the launcher's terminal streams: {error}");
@@ -5271,10 +5308,15 @@ fn main() {
     backend::cleanup_launcher_updates();
     // What the launcher downloads goes through the player's proxy, if they set one: the parts
     // that build their own agents (`horizon-port-pack`) are told before anything starts.
-    horizon_launcher::proxy::announce(horizon_launcher::backend::Settings::load().proxy);
+    let startup_settings = horizon_launcher::backend::Settings::load();
+    horizon_launcher::proxy::announce(startup_settings.proxy.clone());
     if let Some(code) = cli::run() {
         std::process::exit(code);
     }
+    // The launcher's GPU is chosen before GPUI/wgpu creates any graphics device. CLI launches are
+    // deliberately left alone, so this preference never leaks into a game started from the CLI.
+    #[cfg(target_os = "linux")]
+    apply_launcher_gpu(startup_settings.launcher_dedicated_gpu);
     gpui_platform::application()
         .with_assets(blocks::Assets)
         .run(|cx: &mut App| {
