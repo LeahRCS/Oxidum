@@ -3,7 +3,7 @@
 >
 > The goal of this fork is to return local account play with **YOUR** minecraft assets without Microsoft profile authentication
 >
-> You can download it's builds in [RELEASES](https://github.com/0CYBER/horizon-free/releases/latest) section
+> You can download it's builds in [RELEASES](https://github.com/LeahRCS/horizon-free/releases) section
 >
 > Lower part of the README is fully original
 
