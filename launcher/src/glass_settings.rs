@@ -151,6 +151,78 @@ impl Launcher {
         current
     }
 
+    /// Linux hybrid graphics: which GPU the launcher window itself uses on its next start.
+    /// None deliberately preserves how Oxidum was started, including an external prime-run wrapper.
+    fn launcher_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
+        if !cfg!(target_os = "linux") || !horizon_launcher::launch::Found::here().two_gpus {
+            return None;
+        }
+        let t = self.theme;
+        let current = self.settings.launcher_dedicated_gpu;
+        let choices = div()
+            .flex()
+            .items_center()
+            .gap(px(6.))
+            .child(
+                button(
+                    "launcher-gpu-system",
+                    "System",
+                    if current.is_none() {
+                        Kind::Primary
+                    } else {
+                        Kind::Secondary
+                    },
+                    &t,
+                )
+                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                    this.settings.launcher_dedicated_gpu = None;
+                    this.save_settings();
+                    cx.notify();
+                })),
+            )
+            .child(
+                button(
+                    "launcher-gpu-integrated",
+                    "Integrated",
+                    if current == Some(false) {
+                        Kind::Primary
+                    } else {
+                        Kind::Secondary
+                    },
+                    &t,
+                )
+                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                    this.settings.launcher_dedicated_gpu = Some(false);
+                    this.save_settings();
+                    cx.notify();
+                })),
+            )
+            .child(
+                button(
+                    "launcher-gpu-dedicated",
+                    "Dedicated",
+                    if current == Some(true) {
+                        Kind::Primary
+                    } else {
+                        Kind::Secondary
+                    },
+                    &t,
+                )
+                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                    this.settings.launcher_dedicated_gpu = Some(true);
+                    this.save_settings();
+                    cx.notify();
+                })),
+            );
+        Some(index_row(
+            0,
+            tr("Launcher graphics card"),
+            note("System keeps how Oxidum was started. Integrated clears PRIME offload; Dedicated requests the other GPU. The change applies the next time Oxidum opens."),
+            Some(choices.into_any_element()),
+            &t,
+        ))
+    }
+
     /// The cards, one per entry of [`SECTIONS`], in its order.
     fn glass_settings_sections(&mut self, b: Built, cx: &mut Context<Self>) -> Vec<Div> {
         let t = self.theme;
@@ -187,6 +259,7 @@ impl Launcher {
                 &t,
             ))
             .child(self.glass_accent_row(cx))
+            .children(self.launcher_gpu_row(cx))
             .child(self.home_background_row(cx))
             .child(self.language_row(cx))
             .child(self.while_playing_row(n, cx))
