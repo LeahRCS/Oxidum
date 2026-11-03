@@ -304,6 +304,31 @@ for old, new in [
     text = text.replace(old, new)
 p.write_text(text)
 
-# Translation files contain only display strings, so the brand substitution is safe there.
+# Only strings whose source text was rebranded get new translation keys.
+import json
+
+translation_keys = {
+    "Horizon crashed": "Oxidum crashed",
+    "Install Horizon first.": "Install Oxidum first.",
+    "This moves the instance to Horizon {version}. It compiles the game from scratch, so it takes longer than a normal rebuild: up to 30 minutes.": "This moves the instance to Oxidum {version}. It compiles the game from scratch, so it takes longer than a normal rebuild: up to 30 minutes.",
+    "These mods were made for different Horizon versions": "These mods were made for different Oxidum versions",
+    "Not prepared. Horizon can download Minecraft {version} from Mojang for your account, or use your own install.": "Not prepared. Oxidum can download Minecraft {version} from Mojang for your account, or use your own install.",
+    "None needed: Horizon downloads Minecraft from Mojang for your account.": "None needed: Oxidum downloads Minecraft from Mojang for your account.",
+    "Horizon needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.": "Oxidum needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.",
+    "Unsigned: you picked these programs yourself, and Horizon can't check where they came from. Updates never replace them.": "Unsigned: you picked these programs yourself, and Oxidum can't check where they came from. Updates never replace them.",
+    "Horizon is built in the open. Sponsors fund the next release.": "Oxidum is built in the open. Sponsors fund the next release.",
+    "Installs Horizon Launcher for this account. No administrator needed.": "Installs Oxidum Launcher for this account. No administrator needed.",
+    "Removes Horizon Launcher from this computer. Your worlds and the game's folder stay.": "Removes Oxidum Launcher from this computer. Your worlds and the game's folder stay.",
+    "Horizon Launcher is installed.": "Oxidum Launcher is installed.",
+    "Horizon Launcher was removed.": "Oxidum Launcher was removed.",
+    "Launch Horizon": "Launch Oxidum",
+}
 for lang in Path("launcher/lang").glob("*.json"):
-    lang.write_text(lang.read_text().replace("Horizon", "Oxidum"))
+    original = json.loads(lang.read_text())
+    branded = {}
+    for key, value in original.items():
+        new_key = translation_keys.get(key, key)
+        if key in translation_keys and isinstance(value, str):
+            value = value.replace("Horizon", "Oxidum")
+        branded[new_key] = value
+    lang.write_text(json.dumps(branded, ensure_ascii=False, indent=2) + "\n")
