@@ -85,6 +85,30 @@ fn the_players_own_memory_variable_wins() {
 }
 
 #[test]
+fn instance_gpu_override_precedes_legacy_and_settings_default() {
+    let inherited = Launch::default().with_default_gpu(Some("pci:0000:01:00.0"));
+    assert_eq!(inherited.gpu.as_deref(), Some("pci:0000:01:00.0"));
+    assert!(!inherited.dedicated_gpu);
+
+    let legacy = Launch {
+        dedicated_gpu: true,
+        ..Launch::default()
+    }
+    .with_default_gpu(Some("pci:0000:02:00.0"));
+    assert_eq!(legacy.gpu, None);
+    assert!(legacy.dedicated_gpu);
+
+    let explicit = Launch {
+        dedicated_gpu: true,
+        gpu: Some("pci:0000:03:00.0".into()),
+        ..Launch::default()
+    }
+    .with_default_gpu(Some("pci:0000:04:00.0"));
+    assert_eq!(explicit.gpu.as_deref(), Some("pci:0000:03:00.0"));
+    assert!(!explicit.dedicated_gpu);
+}
+
+#[test]
 fn a_summary_says_what_runs() {
     assert_eq!(Launch::default().summary(), None);
     let launch = Launch {
