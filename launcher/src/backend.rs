@@ -3380,6 +3380,12 @@ pub struct Settings {
     /// What the window does while the game runs. Stays by default.
     #[serde(default)]
     pub while_playing: WhilePlaying,
+    /// Linux: which GPU the launcher itself should use on its next GUI start.
+    /// None keeps the environment exactly as the launcher was started; false explicitly clears
+    /// PRIME offload variables (the integrated/default GPU on hybrid systems); true asks for the
+    /// dedicated GPU. This never affects games: each instance keeps its own launch choice.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub launcher_dedicated_gpu: Option<bool>,
     /// The accent colour on top of the appearance (`themes::Accent`). Horizon's violet by default.
     #[serde(default)]
     pub accent: crate::themes::Accent,
