@@ -294,10 +294,7 @@ impl Launch {
         }
         if let Some(gpu) = &self.gpu {
             let name = crate::gpu::name(gpu);
-            parts.push(crate::i18n::trf(
-                "on {gpu}",
-                &[("gpu", &name)],
-            ));
+            parts.push(crate::i18n::trf("on {gpu}", &[("gpu", &name)]));
         } else if self.dedicated_gpu {
             parts.push(crate::i18n::tr("on the dedicated GPU").to_string());
         }
