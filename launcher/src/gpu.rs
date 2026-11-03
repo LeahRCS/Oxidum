@@ -138,6 +138,7 @@ fn launcher_env(gpu: &Gpu, has_proprietary_nvidia: bool) -> Vec<(&'static str, S
     }
     let mut env = vec![("DRI_PRIME", format!("{}!", gpu.dri_prime()))];
     if has_proprietary_nvidia && gpu.vendor != 0x10de {
+        env.push(("__NV_PRIME_RENDER_OFFLOAD", "1".into()));
         env.push(("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()));
     }
     env
@@ -315,6 +316,7 @@ mod tests {
             launcher_env(&gpu, true),
             [
                 ("DRI_PRIME", "pci-0000_00_02_0!".into()),
+                ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
                 ("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()),
             ]
         );
