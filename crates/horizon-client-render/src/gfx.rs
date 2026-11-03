@@ -1794,6 +1794,57 @@ async fn open_with_retry(
         Ok(opened) => Ok(opened),
     }
 }
+/// Chooses the physical GPU the launcher requested for this Rust instance. The PCI bus id is
+/// the stable match; the friendly name is a fallback for backends that do not report one.
+/// If a stale choice is no longer available, keep Horizon playable and fall back to wgpu's
+/// normal adapter selection, with a warning in the log.
+async fn request_chosen_adapter<'a>(
+    instance: &wgpu::Instance,
+    backends: wgpu::Backends,
+    surface: Option<&'a wgpu::Surface<'a>>,
+    options: &wgpu::RequestAdapterOptions<'a, 'a>,
+) -> std::result::Result<wgpu::Adapter, wgpu::RequestAdapterError> {
+    let pci = std::env::var("HORIZON_GPU")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.strip_prefix("pci:").unwrap_or(&s).to_ascii_lowercase());
+    let wanted_name = std::env::var("HORIZON_GPU_NAME")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.to_ascii_lowercase());
+    if pci.is_none() && wanted_name.is_none() {
+        return instance.request_adapter(options).await;
+    }
+
+    let adapters = instance.enumerate_adapters(backends).await;
+    let chosen = adapters.into_iter().find(|adapter| {
+        if surface.is_some_and(|surface| !adapter.is_surface_supported(surface)) {
+            return false;
+        }
+        let info = adapter.get_info();
+        let pci_match = pci.as_ref().is_some_and(|wanted| {
+            !info.device_pci_bus_id.is_empty()
+                && info.device_pci_bus_id.to_ascii_lowercase() == *wanted
+        });
+        let info_name = info.name.to_ascii_lowercase();
+        let name_match = wanted_name.as_ref().is_some_and(|wanted| {
+            info_name.contains(wanted) || wanted.contains(&info_name)
+        });
+        pci_match || name_match
+    });
+    if let Some(adapter) = chosen {
+        return Ok(adapter);
+    }
+
+    log::warn!(
+        "Horizon renderer: selected GPU {:?} ({:?}) is not available on {}; using automatic selection",
+        pci,
+        wanted_name,
+        backends_name(backends)
+    );
+    instance.request_adapter(options).await
+}
+
 /// Opens a device on `backends` alone: its surface, adapter and device, or what
 /// stopped it. `allow_nonconformant` is `open_with_retry`'s second try; a
 /// software adapter is taken only when `allow_cpu`.
@@ -1819,14 +1870,13 @@ async fn open_backend(
             Err(e) => return Err(NoDevice::Failed(format!("{name} surface: {e}"))),
         }
     };
-    let adapter = match instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::HighPerformance,
-            compatible_surface: surface.as_ref(),
-            force_fallback_adapter: false,
-            ..Default::default()
-        })
-        .await
+    let options = wgpu::RequestAdapterOptions {
+        power_preference: wgpu::PowerPreference::HighPerformance,
+        compatible_surface: surface.as_ref(),
+        force_fallback_adapter: false,
+        ..Default::default()
+    };
+    let adapter = match request_chosen_adapter(&instance, backends, surface.as_ref(), &options).await
     {
         Ok(adapter) => adapter,
         Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
