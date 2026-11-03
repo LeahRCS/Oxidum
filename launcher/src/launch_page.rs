@@ -462,11 +462,18 @@ impl Launcher {
                     None
                 };
                 let current = now.gpu.clone().or(legacy);
+                let default_label = self.settings.rust_game_gpu.as_deref().map_or_else(
+                    || tr("Use Settings default (automatic)").to_string(),
+                    |id| {
+                        let name = horizon_launcher::gpu::name(id);
+                        trf("Use Settings default ({gpu})", &[("gpu", &name)])
+                    },
+                );
                 let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
                 choices = choices.child(
                     button(
                         "instance-gpu-system",
-                        "Automatic / system",
+                        default_label,
                         if current.is_none() {
                             Kind::Primary
                         } else {
@@ -515,7 +522,7 @@ impl Launcher {
                         .child(
                             text(theme::CAPTION)
                                 .text_color(t.muted)
-                                .child(tr("Choose which GPU renders this Rust Minecraft instance. Oxidum configures PRIME automatically.")),
+                                .child(tr("Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.")),
                         ),
                 );
             }
