@@ -11,6 +11,9 @@ use std::process::Command;
 
 /// The adapter id the Rust client reads when it chooses its wgpu adapter.
 pub const HORIZON_GPU: &str = "HORIZON_GPU";
+/// Friendly adapter name passed beside the PCI id as a fallback for backends that do not expose
+/// a PCI bus id through wgpu.
+pub const HORIZON_GPU_NAME: &str = "HORIZON_GPU_NAME";
 
 /// Environment variables used by Mesa/NVIDIA PRIME offload.
 pub const PRIME_ENV: [&str; 4] = [
@@ -83,6 +86,7 @@ pub fn apply_to_command(cmd: &mut Command, gpu_id: Option<&str>, rust_game: bool
     }
     if rust_game {
         cmd.env(HORIZON_GPU, &gpu.id);
+        cmd.env(HORIZON_GPU_NAME, &gpu.name);
     }
     apply_prime(
         &gpu,
