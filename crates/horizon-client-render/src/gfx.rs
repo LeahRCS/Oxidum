@@ -1794,6 +1794,22 @@ async fn open_with_retry(
         Ok(opened) => Ok(opened),
     }
 }
+fn adapter_matches_selection(
+    info: &wgpu::AdapterInfo,
+    pci: Option<&str>,
+    wanted_name: Option<&str>,
+) -> bool {
+    let pci_match = pci.is_some_and(|wanted| {
+        !info.device_pci_bus_id.is_empty()
+            && info.device_pci_bus_id.eq_ignore_ascii_case(wanted)
+    });
+    let info_name = info.name.to_ascii_lowercase();
+    let name_match = wanted_name.is_some_and(|wanted| {
+        info_name.contains(wanted) || wanted.contains(&info_name)
+    });
+    pci_match || name_match
+}
+
 /// Chooses the physical GPU the launcher requested for this Rust instance. The PCI bus id is
 /// the stable match; the friendly name is a fallback for backends that do not report one.
 /// If a stale choice is no longer available, keep Horizon playable and fall back to wgpu's
@@ -1821,16 +1837,7 @@ async fn request_chosen_adapter(
         if surface.is_some_and(|surface| !adapter.is_surface_supported(surface)) {
             return false;
         }
-        let info = adapter.get_info();
-        let pci_match = pci.as_ref().is_some_and(|wanted| {
-            !info.device_pci_bus_id.is_empty()
-                && info.device_pci_bus_id.to_ascii_lowercase() == *wanted
-        });
-        let info_name = info.name.to_ascii_lowercase();
-        let name_match = wanted_name.as_ref().is_some_and(|wanted| {
-            info_name.contains(wanted) || wanted.contains(&info_name)
-        });
-        pci_match || name_match
+        adapter_matches_selection(&adapter.get_info(), pci.as_deref(), wanted_name.as_deref())
     });
     if let Some(adapter) = chosen {
         return Ok(adapter);
@@ -10368,6 +10375,28 @@ mod tests {
             transient_saves_memory: None,
             limit_bucket: None,
         }
+    }
+
+    #[test]
+    fn explicit_gpu_selection_matches_pci_or_adapter_name() {
+        let mut info = adapter(wgpu::DeviceType::DiscreteGpu);
+        info.name = "NVIDIA GeForce GTX 1660 Ti".into();
+        info.device_pci_bus_id = "0000:01:00.0".into();
+        assert!(super::adapter_matches_selection(
+            &info,
+            Some("0000:01:00.0"),
+            None,
+        ));
+        assert!(super::adapter_matches_selection(
+            &info,
+            None,
+            Some("geforce gtx 1660 ti"),
+        ));
+        assert!(!super::adapter_matches_selection(
+            &info,
+            Some("0000:02:00.0"),
+            Some("radeon"),
+        ));
     }
 
     #[test]
