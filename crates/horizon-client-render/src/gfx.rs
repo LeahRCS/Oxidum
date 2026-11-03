@@ -1798,11 +1798,11 @@ async fn open_with_retry(
 /// the stable match; the friendly name is a fallback for backends that do not report one.
 /// If a stale choice is no longer available, keep Horizon playable and fall back to wgpu's
 /// normal adapter selection, with a warning in the log.
-async fn request_chosen_adapter<'a>(
+async fn request_chosen_adapter(
     instance: &wgpu::Instance,
     backends: wgpu::Backends,
-    surface: Option<&'a wgpu::Surface<'a>>,
-    options: &wgpu::RequestAdapterOptions<'a, 'a>,
+    surface: Option<&wgpu::Surface<'_>>,
+    options: &wgpu::RequestAdapterOptions<'_, '_>,
 ) -> std::result::Result<wgpu::Adapter, wgpu::RequestAdapterError> {
     let pci = std::env::var("HORIZON_GPU")
         .ok()
