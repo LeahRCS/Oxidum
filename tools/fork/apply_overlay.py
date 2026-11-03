@@ -51,7 +51,13 @@ text = text.replace('assert!(entry.contains("Icon=horizon\\n"));',
                     'assert!(entry.contains("Icon=horizon-free\\n"));')
 text = text.replace('let png = data.join("icons/hicolor/48x48/apps/horizon.png");',
                     'let svg = data.join("icons/hicolor/scalable/apps/horizon-free.svg");')
-text = text.replace('assert!(fs::read(&png).unwrap().starts_with(b"\\x89PNG"));\n        assert!(data\n            .join("icons/hicolor/scalable/apps/horizon.svg")\n            .exists());',
-                    'assert!(fs::read_to_string(&svg).unwrap().starts_with("<svg"));')
+old_test = '''        assert!(fs::read(&png).unwrap().starts_with(b"\\x89PNG"));
+        assert!(data
+            .join("icons/hicolor/scalable/apps/horizon.svg")
+            .exists());'''
+if old_test not in text:
+    raise SystemExit("overlay: desktop icon test changed upstream")
+text = text.replace(old_test,
+                    '        assert!(fs::read_to_string(&svg).unwrap().starts_with("<svg"));')
 text = text.replace('assert!(!png.exists());', 'assert!(!svg.exists());')
 p.write_text(text)
