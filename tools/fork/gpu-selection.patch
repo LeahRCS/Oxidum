@@ -318,7 +318,7 @@ diff --git a/launcher/src/gpu.rs b/launcher/src/gpu.rs
 new file mode 100644
 --- /dev/null
 +++ b/launcher/src/gpu.rs
-@@ -0,0 +1,336 @@
+@@ -0,0 +1,338 @@
 +//! Linux graphics-adapter discovery and PRIME selection for Oxidum.
 +//!
 +//! The user-facing choice is a stable PCI id such as pci:0000:01:00.0 rather than "GPU 1":
@@ -459,6 +459,7 @@ new file mode 100644
 +    }
 +    let mut env = vec![("DRI_PRIME", format!("{}!", gpu.dri_prime()))];
 +    if has_proprietary_nvidia && gpu.vendor != 0x10de {
++        env.push(("__NV_PRIME_RENDER_OFFLOAD", "1".into()));
 +        env.push(("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()));
 +    }
 +    env
@@ -636,6 +637,7 @@ new file mode 100644
 +            launcher_env(&gpu, true),
 +            [
 +                ("DRI_PRIME", "pci-0000_00_02_0!".into()),
++                ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
 +                ("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()),
 +            ]
 +        );
