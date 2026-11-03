@@ -3738,7 +3738,7 @@ impl Launcher {
                             n + 11,
                             tr("Applications menu"),
                             Some(plain(if self.settings.desktop_entry() {
-                                "Horizon and its icon are in your desktop's menu."
+                                "Oxidum and its icon are in your desktop's menu."
                             } else {
                                 "Not in your desktop's menu."
                             })),
@@ -4528,7 +4528,7 @@ impl Launcher {
                 "Imported builds",
                 build_import::is_imported,
                 Some(tr(
-                    "Unsigned: you picked these programs yourself, and Horizon can't \
+                    "Unsigned: you picked these programs yourself, and Oxidum can't \
                     check where they came from. Updates never replace them.",
                 )),
                 &on_disk,
