@@ -68,9 +68,13 @@ fn mark(size: f32, t: &Theme) -> Div {
                 .bg(t.accent),
         )
 }"""
-new_mark = """/// Oxidum's mark: an O split by the accent line, bright above and reflected below.
-fn mark(size: f32, t: &Theme) -> Div {
+new_mark = """/// Oxidum's mark: copper above the seam, oxidized patina below it.
+fn mark(size: f32, _t: &Theme) -> Div {
     let u = size / 16.;
+    let copper_hi: Hsla = gpui::rgb(0xeb9655).into();
+    let copper: Hsla = gpui::rgb(0xb85b29).into();
+    let transition: Hsla = gpui::rgb(0x71866b).into();
+    let patina: Hsla = gpui::rgb(0x55ad93).into();
     let bar = |x: f32, y: f32, w: f32, h: f32, color: Hsla| {
         div()
             .absolute()
@@ -84,13 +88,15 @@ fn mark(size: f32, t: &Theme) -> Div {
         .relative()
         .flex_none()
         .size(px(size))
-        .child(bar(5., 2., 6., 2., t.ink))
-        .child(bar(3., 4., 2., 3., t.ink))
-        .child(bar(11., 4., 2., 3., t.ink))
-        .child(bar(3., 8., 2., 3., t.ink.opacity(0.36)))
-        .child(bar(11., 8., 2., 3., t.ink.opacity(0.36)))
-        .child(bar(5., 11., 6., 2., t.ink.opacity(0.36)))
-        .child(bar(1., 7., 14., 1., t.accent))
+        .child(bar(5., 2., 6., 2., copper_hi))
+        .child(bar(3., 4., 2., 3., copper))
+        .child(bar(11., 4., 2., 3., copper))
+        .child(bar(3., 8., 2., 3., transition))
+        .child(bar(11., 8., 2., 3., patina))
+        .child(bar(5., 11., 6., 2., patina))
+        .child(bar(1., 7., 6., 1., copper_hi))
+        .child(bar(7., 7., 3., 1., transition))
+        .child(bar(10., 7., 5., 1., patina))
 }"""
 if old_mark not in text:
     raise SystemExit("Oxidum overlay: launcher mark changed upstream")
@@ -119,6 +125,97 @@ for old, new in [
     ('if name == "Quit Horizon Launcher"', 'if name == "Quit Oxidum Launcher"'),
 ]:
     text = text.replace(old, new)
+p.write_text(text)
+
+# Oxidum's default colour language: copper action/focus, patina success.
+p = Path("crates/horizon-theme/src/night.rs")
+text = p.read_text()
+text = text.replace("one violet for the main", "Oxidum copper for the main")
+text = text.replace("with the night's violet.", "with Oxidum's copper accent.")
+text = text.replace(
+    "accent: 0x7656fa,\n    accent_hi: 0xa08cff,\n    on_accent: 0xffffff,\n    success: 0x5fd39a,\n    warn: 0xf5b45a,",
+    "accent: 0xb85b29,\n    accent_hi: 0xeb9655,\n    on_accent: 0xffffff,\n    success: 0x55ad93,\n    warn: 0xd9a45c,",
+)
+text = text.replace(
+    "accent: 0x5b3fd6,\n    accent_hi: 0x5333c9,\n    on_accent: 0xffffff,\n    success: 0x136336,\n    warn: 0x7a4f00,",
+    "accent: 0x934018,\n    accent_hi: 0x843a16,\n    on_accent: 0xffffff,\n    success: 0x286858,\n    warn: 0x755000,",
+)
+p.write_text(text)
+
+p = Path("launcher/src/themes.rs")
+text = p.read_text()
+text = text.replace(
+    "An accent is a hue, and the player may pick any of them; seven hues have names, as shortcuts.\n//! Horizon's violet is the default. Another hue turns the violet tokens",
+    "An accent is a hue, and the player may pick any of them; eight accents have names, as shortcuts.\n//! Oxidum's copper is the default. Another hue turns the base tokens",
+)
+text = text.replace(
+    "lightness, then darkens or lightens each just enough to read as well as the violet does:",
+    "lightness, then darkens or lightens each just enough to preserve the same readability:",
+)
+text = text.replace(
+    "/// An accent: a hue in degrees, or none for Horizon's violet, whose tokens are the palette's own",
+    "/// An accent: a hue in degrees, or none for Oxidum's copper, whose tokens are the palette's own",
+)
+text = text.replace(
+    "pub const SWATCHES: [u32; 7] = [\n    0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,\n];",
+    "pub const SWATCHES: [u32; 8] = [\n    0xb85b29, 0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,\n];",
+)
+text = text.replace(
+    'const NAMES: [&str; 7] = ["violet", "blue", "teal", "green", "amber", "red", "pink"];',
+    'const NAMES: [&str; 8] = ["oxidum", "violet", "blue", "teal", "green", "amber", "red", "pink"];',
+)
+text = text.replace(
+    "impl Accent {\n    pub const VIOLET: Accent = Accent {\n        hue: None,\n        rgb: None,\n    };",
+    "impl Accent {\n    pub const OXIDUM: Accent = Accent {\n        hue: None,\n        rgb: None,\n    };\n    pub const VIOLET: Accent = Accent {\n        hue: Some(251.),\n        rgb: None,\n    };",
+)
+text = text.replace(
+    "pub const ALL: [Accent; 7] = [\n        Self::VIOLET,",
+    "pub const ALL: [Accent; 8] = [\n        Self::OXIDUM,\n        Self::VIOLET,",
+)
+text = text.replace("/// the violet's saturation and lightness.", "/// the legacy violet's saturation and lightness.")
+text = text.replace("let (_, s, l) = hsl(SWATCHES[0]);", "let (_, s, l) = hsl(SWATCHES[1]);")
+text = text.replace('None => "violet".to_owned(),', 'None => "oxidum".to_owned(),')
+text = text.replace(
+    'let name = if name == "purple" || name == "default" {\n            "violet"\n        } else {',
+    'let name = if name == "purple" {\n            "violet"\n        } else if name == "default" {\n            "oxidum"\n        } else {',
+)
+text = text.replace(
+    "/// Its hue in degrees; None for the violet, whose tokens stay as they are.",
+    "/// Its hue in degrees; None for Oxidum's default copper, whose tokens stay as they are.",
+)
+p.write_text(text)
+
+p = Path("launcher/src/themes_page.rs")
+text = p.read_text()
+text = text.replace(
+    "Horizon's violet by default. Every colour keeps text as easy to read.",
+    "Oxidum copper by default. Every colour keeps text as easy to read.",
+)
+text = text.replace("its seven swatches", "its eight swatches")
+p.write_text(text)
+
+p = Path("launcher/src/themes/tests.rs")
+text = p.read_text()
+text = text.replace(
+    "fn every_accent_reads_as_well_as_the_violet()",
+    "fn every_accent_keeps_the_required_contrast()",
+)
+text = text.replace(
+    "let violet = Accent::VIOLET.apply(base);\n        assert_eq!((violet.accent, violet.face), (base.accent, base.face));",
+    "let oxidum = Accent::OXIDUM.apply(base);\n        assert_eq!((oxidum.accent, oxidum.face), (base.accent, base.face));",
+)
+text = text.replace(
+    'assert_eq!(Accent::parse("purple"), Some(Accent::VIOLET));',
+    'assert_eq!(Accent::parse("purple"), Some(Accent::VIOLET));\n    assert_eq!(Accent::parse("default"), Some(Accent::OXIDUM));',
+)
+text = text.replace(
+    'assert_eq!(Accent::VIOLET.name(), "violet");',
+    'assert_eq!(Accent::OXIDUM.name(), "oxidum");\n    assert_eq!(Accent::VIOLET.name(), "violet");',
+)
+text = text.replace(
+    'assert_eq!(Accent::VIOLET.hex(), "#6b4bff");',
+    'assert_eq!(Accent::OXIDUM.hex(), "#b85b29");\n    assert_eq!(Accent::VIOLET.hex(), "#6b4bff");',
+)
 p.write_text(text)
 
 # Linux desktop integration.
