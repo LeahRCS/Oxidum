@@ -257,7 +257,7 @@ impl Setup {
             Stage::Welcome if self.mode == Mode::Install => {
                 body = body
                     .child(text(night::UI, c(n.ink_soft)).child(
-                        tr("Installs Horizon Launcher for this account. No administrator needed.")
+                        tr("Installs Oxidum Launcher for this account. No administrator needed.")
                             .to_string(),
                     ))
                     .child(self.folder_row(cx))
@@ -282,7 +282,7 @@ impl Setup {
             Stage::Welcome => {
                 body = body
                     .child(text(night::UI, c(n.ink_soft)).child(
-                        tr("Removes Horizon Launcher from this computer. Your worlds and the game's folder stay.")
+                        tr("Removes Oxidum Launcher from this computer. Your worlds and the game's folder stay.")
                             .to_string(),
                     ))
                     .child(self.toggle(
@@ -323,8 +323,8 @@ impl Setup {
             }
             Stage::Done { left } => {
                 let said = match self.mode {
-                    Mode::Install => tr("Horizon Launcher is installed.").to_string(),
-                    Mode::Uninstall => tr("Horizon Launcher was removed.").to_string(),
+                    Mode::Install => tr("Oxidum Launcher is installed.").to_string(),
+                    Mode::Uninstall => tr("Oxidum Launcher was removed.").to_string(),
                 };
                 body = body.child(text(night::TITLE, c(n.ink)).child(said));
                 if !left.is_empty() {
@@ -349,7 +349,7 @@ impl Setup {
                                 .on_click(
                                     cx.listener(|this, _: &ClickEvent, _, cx| this.launch(cx)),
                                 )
-                                .child(label(tr("Launch Horizon").to_string())),
+                                .child(label(tr("Launch Oxidum").to_string())),
                         ),
                     );
                 }
@@ -375,7 +375,7 @@ impl Setup {
             .flex()
             .flex_col()
             .gap(px(18.))
-            .child(text(night::DISPLAY, c(n.ink)).child("Horizon"))
+            .child(text(night::DISPLAY, c(n.ink)).child("Oxidum"))
             .child(body)
     }
 }
