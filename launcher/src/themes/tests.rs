@@ -10,7 +10,7 @@ fn blend(top: u32, under: u32, alpha: f32) -> u32 {
 }
 
 #[test]
-fn every_accent_reads_as_well_as_the_violet() {
+fn every_accent_keeps_the_required_contrast() {
     for base in [NIGHT.blocks(), DAWN.blocks()] {
         for accent in Accent::ALL
             .into_iter()
@@ -42,8 +42,8 @@ fn every_accent_reads_as_well_as_the_violet() {
                 assert!(off < 3., "{what}: face hue {h:.0}, not {want}");
             }
         }
-        let violet = Accent::VIOLET.apply(base);
-        assert_eq!((violet.accent, violet.face), (base.accent, base.face));
+        let oxidum = Accent::OXIDUM.apply(base);
+        assert_eq!((oxidum.accent, oxidum.face), (base.accent, base.face));
     }
 }
 
@@ -57,6 +57,7 @@ fn colours_go_to_hsl_and_back() {
     }
     assert_eq!(Accent::parse("Teal"), Some(Accent::TEAL));
     assert_eq!(Accent::parse("purple"), Some(Accent::VIOLET));
+    assert_eq!(Accent::parse("default"), Some(Accent::OXIDUM));
     assert_eq!(Accent::parse("chartreuse"), None);
     assert_eq!(serde_json::to_string(&Accent::AMBER).unwrap(), "\"amber\"");
 }
@@ -114,6 +115,7 @@ fn a_picked_hue_is_any_degree_and_survives_settings_json() {
     assert_eq!(Accent::parse("217"), Some(Accent::custom(217.)));
     assert_eq!(Accent::custom(370.).name(), "10");
     assert_eq!(Accent::custom(212.).name(), "blue");
+    assert_eq!(Accent::OXIDUM.name(), "oxidum");
     assert_eq!(Accent::VIOLET.name(), "violet");
     let saved = serde_json::to_string(&Accent::custom(217.5)).unwrap();
     assert_eq!(saved, "\"217.5\"");
@@ -128,6 +130,7 @@ fn a_typed_colour_is_worn_as_is_and_survives_settings_json() {
     // The mockup's swatches are the named accents.
     assert_eq!(Accent::parse("#2563EB"), Some(Accent::BLUE));
     assert_eq!(Accent::BLUE.hex(), "#2563eb");
+    assert_eq!(Accent::OXIDUM.hex(), "#b85b29");
     assert_eq!(Accent::VIOLET.hex(), "#6b4bff");
     // Any other colour keeps its exact value for the glass look, and its hue for the light one.
     let typed = Accent::parse("#ff8800").unwrap();
