@@ -151,73 +151,67 @@ impl Launcher {
         current
     }
 
-    /// Linux hybrid graphics: which GPU the launcher window itself uses on its next start.
-    /// None deliberately preserves how Oxidum was started, including an external prime-run wrapper.
+    /// Linux: the physical GPU the launcher window itself uses on its next start.
     fn launcher_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
-        if !cfg!(target_os = "linux") || !horizon_launcher::launch::Found::here().two_gpus {
+        if !cfg!(target_os = "linux") {
+            return None;
+        }
+        let gpus = horizon_launcher::gpu::list();
+        if gpus.is_empty() {
             return None;
         }
         let t = self.theme;
-        let current = self.settings.launcher_dedicated_gpu;
-        let choices = div()
-            .flex()
-            .items_center()
-            .gap(px(6.))
-            .child(
-                button(
-                    "launcher-gpu-system",
-                    "System",
-                    if current.is_none() {
-                        Kind::Primary
-                    } else {
-                        Kind::Secondary
-                    },
-                    &t,
-                )
-                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                    this.settings.launcher_dedicated_gpu = None;
-                    this.save_settings();
-                    cx.notify();
-                })),
+        let current = self.settings.launcher_gpu.clone();
+        let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
+        choices = choices.child(
+            button(
+                "launcher-gpu-system",
+                "Automatic / system",
+                if current.is_none() {
+                    Kind::Primary
+                } else {
+                    Kind::Secondary
+                },
+                &t,
             )
-            .child(
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.settings.launcher_gpu = None;
+                this.save_settings();
+                cx.notify();
+            })),
+        );
+        for (index, gpu) in gpus.into_iter().enumerate() {
+            let id = gpu.id.clone();
+            let selected = current.as_deref() == Some(id.as_str());
+            let label = match gpu.boot_vga {
+                true => trf(
+                    "{gpu} (system default)",
+                    &[("gpu", &gpu.name)],
+                ),
+                false => gpu.name.clone(),
+            };
+            choices = choices.child(
                 button(
-                    "launcher-gpu-integrated",
-                    "Integrated",
-                    if current == Some(false) {
+                    SharedString::from(format!("launcher-gpu-{index}")),
+                    label,
+                    if selected {
                         Kind::Primary
                     } else {
                         Kind::Secondary
                     },
                     &t,
                 )
-                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                    this.settings.launcher_dedicated_gpu = Some(false);
-                    this.save_settings();
-                    cx.notify();
-                })),
-            )
-            .child(
-                button(
-                    "launcher-gpu-dedicated",
-                    "Dedicated",
-                    if current == Some(true) {
-                        Kind::Primary
-                    } else {
-                        Kind::Secondary
-                    },
-                    &t,
-                )
-                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                    this.settings.launcher_dedicated_gpu = Some(true);
+                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                    this.settings.launcher_gpu = Some(id.clone());
                     this.save_settings();
                     cx.notify();
                 })),
             );
+        }
         Some(index_row(
             0,
             tr("Launcher graphics card"),
-            note("System keeps how Oxidum was started. Integrated clears PRIME offload; Dedicated requests the other GPU. The change applies the next time Oxidum opens."),
+            note("Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens."),
             Some(choices.into_any_element()),
             &t,
         ))
