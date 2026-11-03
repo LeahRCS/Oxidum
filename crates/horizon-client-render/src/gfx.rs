@@ -1800,13 +1800,11 @@ fn adapter_matches_selection(
     wanted_name: Option<&str>,
 ) -> bool {
     let pci_match = pci.is_some_and(|wanted| {
-        !info.device_pci_bus_id.is_empty()
-            && info.device_pci_bus_id.eq_ignore_ascii_case(wanted)
+        !info.device_pci_bus_id.is_empty() && info.device_pci_bus_id.eq_ignore_ascii_case(wanted)
     });
     let info_name = info.name.to_ascii_lowercase();
-    let name_match = wanted_name.is_some_and(|wanted| {
-        info_name.contains(wanted) || wanted.contains(&info_name)
-    });
+    let name_match =
+        wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name));
     pci_match || name_match
 }
 
@@ -1883,11 +1881,11 @@ async fn open_backend(
         force_fallback_adapter: false,
         ..Default::default()
     };
-    let adapter = match request_chosen_adapter(&instance, backends, surface.as_ref(), &options).await
-    {
-        Ok(adapter) => adapter,
-        Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
-    };
+    let adapter =
+        match request_chosen_adapter(&instance, backends, surface.as_ref(), &options).await {
+            Ok(adapter) => adapter,
+            Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
+        };
     // NoAdapter, so `open_with_retry` asks again: with the non-conformant
     // adapters shown, wgpu ranks a real GPU (hasvk on Ivy Bridge or Haswell)
     // above a software one. The second try's error is final either way.
