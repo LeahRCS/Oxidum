@@ -108,9 +108,11 @@ for old, new in [
     ('tr("These mods were made for different Horizon versions")', 'tr("These mods were made for different Oxidum versions")'),
     ('"Not prepared. Horizon can download Minecraft {version} from Mojang for your account, or use your own install."', '"Not prepared. Oxidum can download Minecraft {version} from Mojang for your account, or use your own install."'),
     ('tr("None needed: Horizon downloads Minecraft from Mojang for your account.")', 'tr("None needed: Oxidum downloads Minecraft from Mojang for your account.")'),
-    ('"Horizon and its icon are in your desktop\\'s menu."', '"Oxidum and its icon are in your desktop\\'s menu."'),
+    ('''"Horizon and its icon are in your desktop's menu."''', '''"Oxidum and its icon are in your desktop's menu."'''),
     ('"Horizon needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin."', '"Oxidum needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin."'),
-    ('"Unsigned: you picked these programs yourself, and Horizon can\\'t \\\n                    check where they came from. Updates never replace them."', '"Unsigned: you picked these programs yourself, and Oxidum can\\'t \\\n                    check where they came from. Updates never replace them."'),
+    ('''"Unsigned: you picked these programs yourself, and Horizon can't \\
+                    check where they came from. Updates never replace them."''', '''"Unsigned: you picked these programs yourself, and Oxidum can't \\
+                    check where they came from. Updates never replace them."'''),
     ('name: "Horizon Launcher".into(),', 'name: "Oxidum Launcher".into(),'),
     ('MenuItem::action("Quit Horizon Launcher", Quit)', 'MenuItem::action("Quit Oxidum Launcher", Quit)'),
     ('assert_eq!(menus[0].name, "Horizon Launcher");', 'assert_eq!(menus[0].name, "Oxidum Launcher");'),
