@@ -165,6 +165,8 @@ replace(
     "Comment=Install, prepare and play Oxidum,",
 )
 replace("packaging/linux/horizon-launcher.desktop", "Icon=horizon", "Icon=oxidum")
+replace("packaging/linux/horizon.desktop", "Name=Horizon", "Name=Oxidum")
+replace("packaging/linux/horizon.desktop", "Icon=horizon", "Icon=oxidum")
 
 p = Path("packaging/linux/appimage.sh")
 text = p.read_text()
