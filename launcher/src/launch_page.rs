@@ -454,14 +454,13 @@ impl Launcher {
         } else {
             let gpus = horizon_launcher::gpu::list();
             if gpus.len() > 1 {
-                let legacy = now
-                    .dedicated_gpu
-                    .then(|| {
-                        gpus.iter()
-                            .find(|gpu| !gpu.boot_vga)
-                            .map(|gpu| gpu.id.clone())
-                    })
-                    .flatten();
+                let legacy = if now.dedicated_gpu {
+                    gpus.iter()
+                        .find(|gpu| !gpu.boot_vga)
+                        .map(|gpu| gpu.id.clone())
+                } else {
+                    None
+                };
                 let current = now.gpu.clone().or(legacy);
                 let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
                 choices = choices.child(
