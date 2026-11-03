@@ -1,0 +1,51 @@
+name: Sync Horizon-Free source with upstream
+
+on:
+  schedule:
+    - cron: '9 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge upstream main into a review branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/0CYBER/horizon-free.git
+          git fetch upstream main
+
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo "Already contains upstream/main."
+            exit 0
+          fi
+
+          branch=automation/upstream-sync
+          git checkout -B "$branch" main
+          if ! git merge --no-edit upstream/main; then
+            git merge --abort || true
+            echo "::error::Upstream sync has conflicts. Manual reconciliation is required; main was not changed."
+            exit 1
+          fi
+
+          git push --force-with-lease origin "$branch"
+
+          if gh pr view "$branch" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh pr edit "$branch" --repo "${{ github.repository }}"               --title "Sync upstream Horizon-Free"               --body "Automated source sync from 0CYBER/horizon-free. Main is not modified until this PR is reviewed and merged."
+          else
+            gh pr create --repo "${{ github.repository }}"               --base main --head "$branch"               --title "Sync upstream Horizon-Free"               --body "Automated source sync from 0CYBER/horizon-free. Main is not modified until this PR is reviewed and merged."
+          fi
