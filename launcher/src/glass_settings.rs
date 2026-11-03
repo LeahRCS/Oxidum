@@ -184,10 +184,7 @@ impl Launcher {
             let id = gpu.id.clone();
             let selected = current.as_deref() == Some(id.as_str());
             let label = match gpu.boot_vga {
-                true => trf(
-                    "{gpu} (system default)",
-                    &[("gpu", &gpu.name)],
-                ),
+                true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
                 false => gpu.name.clone(),
             };
             choices = choices.child(
