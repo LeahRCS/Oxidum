@@ -34,8 +34,8 @@ chmod 755 "$appdir/usr/bin/horizon-launcher"
 cp "$here/horizon-launcher.desktop" "$appdir/horizon-launcher.desktop"
 cp "$here/horizon-launcher.desktop" "$appdir/usr/share/applications/horizon-launcher.desktop"
 cp -R "$here/../icons/hicolor/." "$appdir/usr/share/icons/hicolor/"
-cp "$here/../icons/hicolor/512x512/apps/horizon-free.png" "$appdir/horizon-free.png"
-ln -s horizon-free.png "$appdir/.DirIcon"
+cp "$here/../icons/hicolor/scalable/apps/horizon-free.svg" "$appdir/horizon-free.svg"
+ln -s horizon-free.svg "$appdir/.DirIcon"
 
 # Runs the packaged binary. It finds the packaged libraries through its own run path (set below),
 # not LD_LIBRARY_PATH, which every program it starts (the game, a browser, a file manager) would
