@@ -83,7 +83,7 @@ impl Launcher {
             Some(
                 div()
                     .child(tr(
-                        "Horizon's violet by default. Every colour keeps text as easy to read.",
+                        "Oxidum copper by default. Every colour keeps text as easy to read.",
                     ))
                     .into_any_element(),
             ),
@@ -100,7 +100,7 @@ impl Launcher {
         )
     }
 
-    /// The glass look's accent row (the mockup's): its seven swatches, the any-colour swatch
+    /// The glass look's accent row (the mockup's): its eight swatches, the any-colour swatch
     /// (a click shows the hue strip under them, the browser's colour picker in the mockup) and
     /// the hex field, which takes the colour as soon as it is one.
     pub(super) fn glass_accent_row(&mut self, cx: &mut Context<Self>) -> Div {
