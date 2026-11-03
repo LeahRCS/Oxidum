@@ -1,7 +1,7 @@
 diff --git a/crates/horizon-client-render/src/gfx.rs b/crates/horizon-client-render/src/gfx.rs
 --- a/crates/horizon-client-render/src/gfx.rs
 +++ b/crates/horizon-client-render/src/gfx.rs
-@@ -1794,6 +1794,64 @@ async fn open_with_retry(
+@@ -1794,6 +1794,62 @@ async fn open_with_retry(
          Ok(opened) => Ok(opened),
      }
  }
@@ -11,13 +11,11 @@ diff --git a/crates/horizon-client-render/src/gfx.rs b/crates/horizon-client-ren
 +    wanted_name: Option<&str>,
 +) -> bool {
 +    let pci_match = pci.is_some_and(|wanted| {
-+        !info.device_pci_bus_id.is_empty()
-+            && info.device_pci_bus_id.eq_ignore_ascii_case(wanted)
++        !info.device_pci_bus_id.is_empty() && info.device_pci_bus_id.eq_ignore_ascii_case(wanted)
 +    });
 +    let info_name = info.name.to_ascii_lowercase();
-+    let name_match = wanted_name.is_some_and(|wanted| {
-+        info_name.contains(wanted) || wanted.contains(&info_name)
-+    });
++    let name_match =
++        wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name));
 +    pci_match || name_match
 +}
 +
@@ -66,7 +64,7 @@ diff --git a/crates/horizon-client-render/src/gfx.rs b/crates/horizon-client-ren
  /// Opens a device on `backends` alone: its surface, adapter and device, or what
  /// stopped it. `allow_nonconformant` is `open_with_retry`'s second try; a
  /// software adapter is taken only when `allow_cpu`.
-@@ -1819,14 +1877,13 @@ async fn open_backend(
+@@ -1819,18 +1875,17 @@ async fn open_backend(
              Err(e) => return Err(NoDevice::Failed(format!("{name} surface: {e}"))),
          }
      };
@@ -78,17 +76,24 @@ diff --git a/crates/horizon-client-render/src/gfx.rs b/crates/horizon-client-ren
 -            ..Default::default()
 -        })
 -        .await
+-    {
+-        Ok(adapter) => adapter,
+-        Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
 +    let options = wgpu::RequestAdapterOptions {
 +        power_preference: wgpu::PowerPreference::HighPerformance,
 +        compatible_surface: surface.as_ref(),
 +        force_fallback_adapter: false,
 +        ..Default::default()
-+    };
-+    let adapter = match request_chosen_adapter(&instance, backends, surface.as_ref(), &options).await
-     {
-         Ok(adapter) => adapter,
-         Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
-@@ -10320,6 +10377,28 @@ mod tests {
+     };
++    let adapter =
++        match request_chosen_adapter(&instance, backends, surface.as_ref(), &options).await {
++            Ok(adapter) => adapter,
++            Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
++        };
+     // NoAdapter, so `open_with_retry` asks again: with the non-conformant
+     // adapters shown, wgpu ranks a real GPU (hasvk on Ivy Bridge or Haswell)
+     // above a software one. The second try's error is final either way.
+@@ -10320,6 +10375,28 @@ mod tests {
          }
      }
  
@@ -363,7 +368,7 @@ new file mode 100644
 +impl Gpu {
 +    /// Mesa's stable PCI selector for DRI_PRIME.
 +    pub fn dri_prime(&self) -> String {
-+        format!("pci-{}", self.pci_slot.replace(':', "_").replace('.', "_"))
++        format!("pci-{}", self.pci_slot.replace([':', '.'], "_"))
 +    }
 +
 +    fn proprietary_nvidia(&self) -> bool {
