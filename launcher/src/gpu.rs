@@ -42,7 +42,7 @@ pub struct Gpu {
 impl Gpu {
     /// Mesa's stable PCI selector for DRI_PRIME.
     pub fn dri_prime(&self) -> String {
-        format!("pci-{}", self.pci_slot.replace(':', "_").replace('.', "_"))
+        format!("pci-{}", self.pci_slot.replace([':', '.'], "_"))
     }
 
     fn proprietary_nvidia(&self) -> bool {
