@@ -10,7 +10,7 @@ use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 
 pub const REPO: &str = "horizon-rust/horizon";
-pub const LAUNCHER_REPO: &str = "0CYBER/horizon-free";
+pub const LAUNCHER_REPO: &str = "LeahRCS/horizon-free";
 /// Horizon-free: the game starts without a Microsoft account that owns it, in the window and on
 /// the command line. Downloads still need an owner, so the game comes from the player's own install.
 pub const OFFLINE_PLAY: bool = true;
