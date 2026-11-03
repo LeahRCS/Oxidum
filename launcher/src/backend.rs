@@ -3385,6 +3385,10 @@ pub struct Settings {
     /// including an external prime-run wrapper.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub launcher_gpu: Option<String>,
+    /// Linux: the physical GPU Rust Minecraft instances use by default. Individual instances may
+    /// override it in their launch panel. None leaves adapter choice automatic/system-managed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rust_game_gpu: Option<String>,
     /// The accent colour on top of the appearance (`themes::Accent`). Horizon's violet by default.
     #[serde(default)]
     pub accent: crate::themes::Accent,
