@@ -1,15 +1,15 @@
 //! The player's own look, on top of Dark, Light or System: an accent colour and a picture behind
 //! Home.
 //!
-//! An accent is a hue, and the player may pick any of them; seven hues have names, as shortcuts.
-//! Horizon's violet is the default. Another hue turns the violet tokens (`horizon_theme::Blocks`'
+//! An accent is a hue, and the player may pick any of them; eight accents have names, as shortcuts.
+//! Oxidum's copper is the default. Another hue turns the base tokens (`horizon_theme::Blocks`'
 //! accent and the main action's face, bevel and lip) to it, keeping their saturation and
-//! lightness, then darkens or lightens each just enough to read as well as the violet does: white
+//! lightness, then darkens or lightens each just enough to preserve the same readability: white
 //! on the face at 4.5:1, the accent at 3:1 on every background.
 use horizon_theme::{contrast, Blocks};
 use std::path::{Path, PathBuf};
 
-/// An accent: a hue in degrees, or none for Horizon's violet, whose tokens are the palette's own
+/// An accent: a hue in degrees, or none for Oxidum's copper, whose tokens are the palette's own
 /// and stay untouched; and for a colour typed as hex, that colour (the glass look wears it as
 /// is, the light look takes its hue).
 #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -20,16 +20,20 @@ pub struct Accent {
 }
 
 /// The glass look's colour for each of [`Accent::ALL`]: the mockup's swatches.
-pub const SWATCHES: [u32; 7] = [
-    0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,
+pub const SWATCHES: [u32; 8] = [
+    0xb85b29, 0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,
 ];
 
 /// [`Accent::ALL`]'s names, in its order.
-const NAMES: [&str; 7] = ["violet", "blue", "teal", "green", "amber", "red", "pink"];
+const NAMES: [&str; 8] = ["oxidum", "violet", "blue", "teal", "green", "amber", "red", "pink"];
 
 impl Accent {
-    pub const VIOLET: Accent = Accent {
+    pub const OXIDUM: Accent = Accent {
         hue: None,
+        rgb: None,
+    };
+    pub const VIOLET: Accent = Accent {
+        hue: Some(251.),
         rgb: None,
     };
     pub const BLUE: Accent = Accent {
@@ -57,7 +61,8 @@ impl Accent {
         rgb: None,
     };
 
-    pub const ALL: [Accent; 7] = [
+    pub const ALL: [Accent; 8] = [
+        Self::OXIDUM,
         Self::VIOLET,
         Self::BLUE,
         Self::TEAL,
@@ -88,7 +93,7 @@ impl Accent {
     }
 
     /// The colour the glass look wears: the one typed, a named accent's swatch, else the hue at
-    /// the violet's saturation and lightness.
+    /// the legacy violet's saturation and lightness.
     pub fn rgb(self) -> u32 {
         if let Some(rgb) = self.rgb {
             return rgb;
@@ -96,7 +101,7 @@ impl Accent {
         match (Self::ALL.iter().position(|a| *a == self), self.hue) {
             (Some(i), _) => SWATCHES[i],
             (None, Some(hue)) => {
-                let (_, s, l) = hsl(SWATCHES[0]);
+                let (_, s, l) = hsl(SWATCHES[1]);
                 from_hsl(hue, s, l)
             }
             (None, None) => SWATCHES[0],
@@ -119,7 +124,7 @@ impl Accent {
             .position(|a| *a == self)
             .map(|i| NAMES[i].to_owned());
         named.unwrap_or_else(|| match self.hue {
-            None => "violet".to_owned(),
+            None => "oxidum".to_owned(),
             Some(hue) => format!("{hue}"),
         })
     }
@@ -133,8 +138,10 @@ impl Accent {
                 .flatten()
                 .map(Self::from_rgb);
         }
-        let name = if name == "purple" || name == "default" {
+        let name = if name == "purple" {
             "violet"
+        } else if name == "default" {
+            "oxidum"
         } else {
             &name
         };
@@ -147,7 +154,7 @@ impl Accent {
             .map(Self::custom)
     }
 
-    /// Its hue in degrees; None for the violet, whose tokens stay as they are.
+    /// Its hue in degrees; None for Oxidum's default copper, whose tokens stay as they are.
     pub fn hue(self) -> Option<f32> {
         self.hue
     }
