@@ -20,7 +20,7 @@ use std::process::Command;
 #[command(
     name = "horizon-launcher",
     version = backend::VERSION,
-    about = "Installs, prepares and starts Horizon. Without a subcommand, opens the window."
+    about = "Installs, prepares and starts Oxidum. Without a subcommand, opens the window."
 )]
 struct Cli {
     /// Print JSON instead of text, where a command has something to report
@@ -1682,10 +1682,10 @@ fn execute(command: Cmd, as_json: bool) -> Result<(), String> {
             settings.save()?;
             if remove {
                 horizon_launcher::desktop::remove()?;
-                println!("Removed Horizon from the applications menu.");
+                println!("Removed Oxidum from the applications menu.");
             } else {
                 horizon_launcher::desktop::install(backend::exe_path())?;
-                println!("Horizon is in the applications menu.");
+                println!("Oxidum is in the applications menu.");
             }
         }
         Cmd::Worlds { action } => worlds(
@@ -1814,12 +1814,12 @@ fn update(check: bool, as_json: bool) -> Result<(), String> {
         return Ok(());
     }
     match &updates.horizon {
-        None => println!("Horizon: up to date."),
-        Some(r) if check => println!("Horizon: {} is available.", r.tag),
+        None => println!("Oxidum: up to date."),
+        Some(r) if check => println!("Oxidum: {} is available.", r.tag),
         Some(r) => {
             let tag =
                 backend::install_tag(&r.tag, true, progress(format!("Installing {}", r.tag)))?;
-            println!("Horizon: installed {tag}.");
+            println!("Oxidum: installed {tag}.");
         }
     }
     match &updates.launcher {
