@@ -12,45 +12,11 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// The icon theme sizes, as `packaging/icons/hicolor` holds them (`cargo run -p xtask -- icons`).
-const ICONS: [(&str, &[u8]); 9] = [
-    (
-        "16x16",
-        include_bytes!("../../packaging/icons/hicolor/16x16/apps/horizon.png"),
-    ),
-    (
-        "24x24",
-        include_bytes!("../../packaging/icons/hicolor/24x24/apps/horizon.png"),
-    ),
-    (
-        "32x32",
-        include_bytes!("../../packaging/icons/hicolor/32x32/apps/horizon.png"),
-    ),
-    (
-        "48x48",
-        include_bytes!("../../packaging/icons/hicolor/48x48/apps/horizon.png"),
-    ),
-    (
-        "64x64",
-        include_bytes!("../../packaging/icons/hicolor/64x64/apps/horizon.png"),
-    ),
-    (
-        "128x128",
-        include_bytes!("../../packaging/icons/hicolor/128x128/apps/horizon.png"),
-    ),
-    (
-        "256x256",
-        include_bytes!("../../packaging/icons/hicolor/256x256/apps/horizon.png"),
-    ),
-    (
-        "512x512",
-        include_bytes!("../../packaging/icons/hicolor/512x512/apps/horizon.png"),
-    ),
-    (
-        "scalable",
-        include_bytes!("../../packaging/icons/hicolor/scalable/apps/horizon.svg"),
-    ),
-];
+/// The Horizon-Free launcher icon installed in the user's hicolor theme.
+const ICONS: [(&str, &[u8]); 1] = [(
+    "scalable",
+    include_bytes!("../../packaging/icons/hicolor/scalable/apps/horizon-free.svg"),
+)];
 
 const LAUNCHER_ENTRY: &str = "horizon-launcher.desktop";
 const GAME_ENTRY: &str = "horizon.desktop";
@@ -87,7 +53,7 @@ pub fn launcher_entry(exe: &Path) -> String {
          Comment=Install, prepare and play Horizon, Minecraft: Java Edition {minecraft} rewritten in Rust\n\
          Exec={}\n\
          TryExec={}\n\
-         Icon=horizon\n\
+         Icon=horizon-free\n\
          Terminal=false\n\
          Categories=Game;\n\
          StartupWMClass=horizon-launcher\n",
@@ -111,9 +77,9 @@ fn files(data: &Path, exe: &Path) -> Vec<(PathBuf, Vec<u8>)> {
     ];
     for (size, bytes) in ICONS {
         let name = if size == "scalable" {
-            "horizon.svg"
+            "horizon-free.svg"
         } else {
-            "horizon.png"
+            "horizon-free.png"
         };
         out.push((
             data.join("icons/hicolor")
@@ -262,7 +228,7 @@ mod tests {
         let entry = launcher_entry(Path::new("/home/a b/Horizon \"x\"/horizon-launcher"));
         assert!(entry.contains("Exec=\"/home/a b/Horizon \\\"x\\\"/horizon-launcher\"\n"));
         assert!(entry.contains("TryExec=/home/a b/Horizon \"x\"/horizon-launcher\n"));
-        assert!(entry.contains("Icon=horizon\n"));
+        assert!(entry.contains("Icon=horizon-free\n"));
     }
 
     #[test]
@@ -271,7 +237,7 @@ mod tests {
         let _ = fs::remove_dir_all(&data);
         assert!(install_in(&data, Path::new("/opt/a/horizon-launcher")).unwrap());
         assert!(!install_in(&data, Path::new("/opt/a/horizon-launcher")).unwrap());
-        let png = data.join("icons/hicolor/48x48/apps/horizon.png");
+        let svg = data.join("icons/hicolor/scalable/apps/horizon-free.svg");
         assert!(fs::read(&png).unwrap().starts_with(b"\x89PNG"));
         assert!(data
             .join("icons/hicolor/scalable/apps/horizon.svg")
@@ -281,7 +247,7 @@ mod tests {
         assert!(entry.contains("Exec=\"/opt/b/horizon-launcher\""));
         remove_in(&data).unwrap();
         assert!(!data.join("applications").join(LAUNCHER_ENTRY).exists());
-        assert!(!png.exists());
+        assert!(!svg.exists());
         remove_in(&data).unwrap();
         let _ = fs::remove_dir_all(&data);
     }
