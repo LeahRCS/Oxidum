@@ -24,6 +24,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: oxidum-appimage-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   HORIZON_TELEMETRY_URL: "off"
 
