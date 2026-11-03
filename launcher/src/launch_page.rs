@@ -130,6 +130,20 @@ impl Launcher {
         self.reload_instances();
     }
 
+    /// Picks a physical GPU for a Rust instance. None means inherit the environment as before.
+    /// Choosing through the new list also retires the old boolean dedicated-GPU switch for it.
+    fn pick_instance_gpu(&mut self, gpu: Option<String>) {
+        let Some(panel) = &mut self.launch else {
+            return;
+        };
+        let saved = instances::edit(&panel.instance, |m| {
+            m.launch.gpu = gpu.clone();
+            m.launch.dedicated_gpu = false;
+        });
+        panel.saved = Some(saved.map(|i| i.launch.summary()));
+        self.reload_instances();
+    }
+
     /// The value under the pointer. Saving waits until the mouse comes up.
     fn pick_memory(&mut self, at: Point<Pixels>, cx: &mut Context<Self>) {
         let Some(instance) = self.selected_instance().cloned() else {
@@ -354,17 +368,15 @@ impl Launcher {
         )
     }
 
-    /// The Linux switches this computer can use: GameMode and MangoHud when installed, the
-    /// dedicated GPU with two cards.
+    /// Linux launch helpers: GameMode and MangoHud, plus a physical GPU picker for Rust
+    /// instances. Java instances keep the older dedicated-GPU switch unchanged.
     fn linux_switches(&self, cx: &mut Context<Self>) -> Option<Div> {
         let t = self.theme;
         let found = self.launch.as_ref()?.found;
-        let now = self.selected_instance()?.launch.clone();
-        let gpu_about = match found.nvidia {
-            true => "NVIDIA render offload: __NV_PRIME_RENDER_OFFLOAD and its Vulkan layer.",
-            false => "Mesa's DRI_PRIME=1, so Vulkan picks the other card.",
-        };
+        let instance = self.selected_instance()?.clone();
+        let now = instance.launch.clone();
         let mut list = div().flex().flex_col().gap(px(10.));
+
         for (toggle, shown, on, label, about) in [
             (
                 Toggle::GameMode,
@@ -379,13 +391,6 @@ impl Launcher {
                 now.mangohud,
                 "MangoHud",
                 "The frame time, CPU and GPU overlay.",
-            ),
-            (
-                Toggle::Gpu,
-                found.two_gpus,
-                now.dedicated_gpu,
-                "Dedicated graphics card",
-                gpu_about,
             ),
         ] {
             if !shown {
@@ -411,7 +416,104 @@ impl Launcher {
                     })),
             );
         }
-        found.any().then(|| {
+
+        if instance.java.is_some() {
+            if found.two_gpus {
+                let gpu_about = match found.nvidia {
+                    true => "NVIDIA render offload for this Java instance.",
+                    false => "Mesa PRIME render offload for this Java instance.",
+                };
+                list = list.child(
+                    div()
+                        .id("launch-switch-Dedicated-gpu")
+                        .flex()
+                        .items_center()
+                        .gap(px(10.))
+                        .cursor_pointer()
+                        .child(switch("launch-switch-Dedicated-gpu-s", now.dedicated_gpu, &t))
+                        .child(
+                            text(theme::LABEL)
+                                .text_color(t.ink_soft)
+                                .child(tr("Dedicated graphics card")),
+                        )
+                        .child(text(theme::CAPTION).text_color(t.muted).child(tr(gpu_about)))
+                        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                            this.flip(Toggle::Gpu);
+                            cx.notify();
+                        })),
+                );
+            }
+        } else {
+            let gpus = horizon_launcher::gpu::list();
+            if gpus.len() > 1 {
+                let legacy = now.dedicated_gpu.then(|| {
+                    gpus.iter()
+                        .find(|gpu| !gpu.boot_vga)
+                        .map(|gpu| gpu.id.as_str())
+                }).flatten();
+                let current = now.gpu.as_deref().or(legacy);
+                let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
+                choices = choices.child(
+                    button(
+                        "instance-gpu-system",
+                        "Automatic / system",
+                        if current.is_none() {
+                            Kind::Primary
+                        } else {
+                            Kind::Secondary
+                        },
+                        &t,
+                    )
+                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                        this.pick_instance_gpu(None);
+                        cx.notify();
+                    })),
+                );
+                for (index, gpu) in gpus.into_iter().enumerate() {
+                    let id = gpu.id.clone();
+                    let selected = current == Some(id.as_str());
+                    let label = match gpu.boot_vga {
+                        true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
+                        false => gpu.name.clone(),
+                    };
+                    choices = choices.child(
+                        button(
+                            SharedString::from(format!("instance-gpu-{index}")),
+                            label,
+                            if selected {
+                                Kind::Primary
+                            } else {
+                                Kind::Secondary
+                            },
+                            &t,
+                        )
+                        .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                            this.pick_instance_gpu(Some(id.clone()));
+                            cx.notify();
+                        })),
+                    );
+                }
+                list = list.child(
+                    div()
+                        .flex()
+                        .flex_col()
+                        .gap(px(8.))
+                        .child(caps(tr("Graphics card")).text_color(t.muted))
+                        .child(choices)
+                        .child(
+                            text(theme::CAPTION)
+                                .text_color(t.muted)
+                                .child(tr("Choose which GPU renders this Rust Minecraft instance. Oxidum configures PRIME automatically.")),
+                        ),
+                );
+            }
+        }
+
+        let any = found.gamemode
+            || found.mangohud
+            || (instance.java.is_some() && found.two_gpus)
+            || (instance.java.is_none() && horizon_launcher::gpu::list().len() > 1);
+        any.then(|| {
             div()
                 .flex()
                 .flex_col()
