@@ -899,7 +899,7 @@ impl Launcher {
             None => native_mods::base_for(plays.as_deref(), &self.installed, false),
         };
         let Some(base) = base else {
-            let error = tr("Install Horizon first.").to_string();
+            let error = tr("Install Oxidum first.").to_string();
             self.native_log_preflight(&error);
             self.native_error = Some(error);
             return;
@@ -1933,35 +1933,29 @@ fn version_tag(tag: &str) -> Div {
         )
 }
 
-/// Horizon's mark: two stems, their reflection below, and the horizon across in the accent.
+/// Oxidum's mark: an O split by the accent line, bright above and reflected below.
 fn mark(size: f32, t: &Theme) -> Div {
     let u = size / 16.;
-    let stem = |x: f32, y: f32, color: Hsla| {
+    let bar = |x: f32, y: f32, w: f32, h: f32, color: Hsla| {
         div()
             .absolute()
             .left(px(x * u))
             .top(px(y * u))
-            .w(px(2. * u))
-            .h(px(4. * u))
+            .w(px(w * u))
+            .h(px(h * u))
             .bg(color)
     };
     div()
         .relative()
         .flex_none()
         .size(px(size))
-        .child(stem(4., 3., t.ink))
-        .child(stem(10., 3., t.ink))
-        .child(stem(4., 8., t.ink.opacity(0.36)))
-        .child(stem(10., 8., t.ink.opacity(0.36)))
-        .child(
-            div()
-                .absolute()
-                .left(px(u))
-                .top(px(7. * u))
-                .w(px(14. * u))
-                .h(px(u))
-                .bg(t.accent),
-        )
+        .child(bar(5., 2., 6., 2., t.ink))
+        .child(bar(3., 4., 2., 3., t.ink))
+        .child(bar(11., 4., 2., 3., t.ink))
+        .child(bar(3., 8., 2., 3., t.ink.opacity(0.36)))
+        .child(bar(11., 8., 2., 3., t.ink.opacity(0.36)))
+        .child(bar(5., 11., 6., 2., t.ink.opacity(0.36)))
+        .child(bar(1., 7., 14., 1., t.accent))
 }
 
 /// The last thing the player did was press Tab: focused controls show a ring (a click focuses them
@@ -2823,8 +2817,8 @@ impl Launcher {
         // Horizon-Free: link to the fork's repository.
         foot = foot.child(div().h(px(1.)).w_full().bg(t.rule).my(px(4.)));
         foot = foot.child(link(
-            "horizon-free",
-            "Horizon-Free",
+            "oxidum",
+            "Oxidum",
             "globe",
             "https://github.com/LeahRCS/horizon-free".to_string(),
         ));
@@ -2876,7 +2870,7 @@ impl Launcher {
                 .child(
                     shell::text(theme::night::TITLE, shell::c(n.ink))
                         .font_family(theme::DISPLAY_FONT)
-                        .child("Horizon"),
+                        .child("Oxidum"),
                 )
         });
         shell::sidebar_plate(&t)
@@ -3443,7 +3437,7 @@ impl Launcher {
             .child(
                 text(theme::HEADING)
                     .text_color(t.ink)
-                    .child(tr("Horizon crashed")),
+                    .child(tr("Oxidum crashed")),
             );
         if !crash.summary.is_empty() {
             body = body.child(div().text_color(t.ink_soft).child(crash.summary));
@@ -3705,7 +3699,7 @@ impl Launcher {
                     .child(group("AI", "terminal"))
                     .child(self.no_ai_row(n + 6, cx))
                     .child(group("About", "info-box"))
-                    .child(index_row(n + 7, "Horizon", Some(plain(&horizon)), horizon_action, &t))
+                    .child(index_row(n + 7, "Oxidum", Some(plain(&horizon)), horizon_action, &t))
                     .child(index_row(
                         n + 8,
                         tr("Launcher"),
@@ -3787,7 +3781,7 @@ impl Launcher {
             .child(tr("The build compiles the game: 20 to 30 minutes and a few GB of disk the first time (it downloads Rust), a few minutes after that.").to_string())
             .children(self.native_update.as_ref().map(|newer| {
                 div().text_color(t.warn).child(trf(
-                    "This moves the instance to Horizon {version}. It compiles the game from scratch, so it takes longer than a normal rebuild: up to 30 minutes.",
+                    "This moves the instance to Oxidum {version}. It compiles the game from scratch, so it takes longer than a normal rebuild: up to 30 minutes.",
                     &[("version", &native_status::horizon_label(newer))],
                 ))
             }));
@@ -3828,7 +3822,7 @@ impl Launcher {
             .mt(px(8.))
             .p(px(12.))
             .bg(t.well)
-            .child(div().text_color(t.danger).child(tr("These mods were made for different Horizon versions").to_string()))
+            .child(div().text_color(t.danger).child(tr("These mods were made for different Oxidum versions").to_string()))
             .child(list.to_owned())
             .child(tr("They often still work together. If the build fails, install versions made for the same Nightly.").to_string())
             .child(
@@ -4730,7 +4724,7 @@ impl Launcher {
                                 .child(tr("Support the work below")),
                         )
                         .child(text(theme::UI).text_color(t.muted).child(tr(
-                            "Horizon is built in the open. Sponsors fund the next release.",
+                            "Oxidum is built in the open. Sponsors fund the next release.",
                         ))),
                 )
                 .child(
@@ -5241,8 +5235,8 @@ fn key_bindings() -> Vec<KeyBinding> {
 fn menus() -> Vec<Menu> {
     vec![
         Menu {
-            name: "Horizon Launcher".into(),
-            items: vec![MenuItem::action("Quit Horizon Launcher", Quit)],
+            name: "Oxidum Launcher".into(),
+            items: vec![MenuItem::action("Quit Oxidum Launcher", Quit)],
             disabled: false,
         },
         Menu {
@@ -5477,10 +5471,10 @@ mod tests {
     #[test]
     fn the_app_menu_has_quit() {
         let menus = super::menus();
-        assert_eq!(menus[0].name, "Horizon Launcher");
+        assert_eq!(menus[0].name, "Oxidum Launcher");
         assert!(matches!(
             &menus[0].items[0],
-            gpui::MenuItem::Action { name, .. } if name == "Quit Horizon Launcher"
+            gpui::MenuItem::Action { name, .. } if name == "Quit Oxidum Launcher"
         ));
     }
 
