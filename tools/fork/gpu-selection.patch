@@ -137,7 +137,7 @@ diff --git a/launcher/src/backend.rs b/launcher/src/backend.rs
 diff --git a/launcher/src/glass_settings.rs b/launcher/src/glass_settings.rs
 --- a/launcher/src/glass_settings.rs
 +++ b/launcher/src/glass_settings.rs
-@@ -151,6 +151,72 @@ impl Launcher {
+@@ -151,6 +151,69 @@ impl Launcher {
          current
      }
  
@@ -174,10 +174,7 @@ diff --git a/launcher/src/glass_settings.rs b/launcher/src/glass_settings.rs
 +            let id = gpu.id.clone();
 +            let selected = current.as_deref() == Some(id.as_str());
 +            let label = match gpu.boot_vga {
-+                true => trf(
-+                    "{gpu} (system default)",
-+                    &[("gpu", &gpu.name)],
-+                ),
++                true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
 +                false => gpu.name.clone(),
 +            };
 +            choices = choices.child(
@@ -210,7 +207,7 @@ diff --git a/launcher/src/glass_settings.rs b/launcher/src/glass_settings.rs
      /// The cards, one per entry of [`SECTIONS`], in its order.
      fn glass_settings_sections(&mut self, b: Built, cx: &mut Context<Self>) -> Vec<Div> {
          let t = self.theme;
-@@ -187,6 +253,7 @@ impl Launcher {
+@@ -187,6 +250,7 @@ impl Launcher {
                  &t,
              ))
              .child(self.glass_accent_row(cx))
@@ -533,17 +530,14 @@ diff --git a/launcher/src/launch.rs b/launcher/src/launch.rs
  }
  
  fn is_false(b: &bool) -> bool {
-@@ -287,7 +292,13 @@ impl Launch {
+@@ -287,7 +292,10 @@ impl Launch {
          if self.mangohud {
              parts.push(crate::i18n::tr("with MangoHud").to_string());
          }
 -        if self.dedicated_gpu {
 +        if let Some(gpu) = &self.gpu {
 +            let name = crate::gpu::name(gpu);
-+            parts.push(crate::i18n::trf(
-+                "on {gpu}",
-+                &[("gpu", &name)],
-+            ));
++            parts.push(crate::i18n::trf("on {gpu}", &[("gpu", &name)]));
 +        } else if self.dedicated_gpu {
              parts.push(crate::i18n::tr("on the dedicated GPU").to_string());
          }
@@ -610,7 +604,7 @@ diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
          ] {
              if !shown {
                  continue;
-@@ -411,7 +416,104 @@ impl Launcher {
+@@ -411,7 +416,116 @@ impl Launcher {
                      })),
              );
          }
@@ -629,13 +623,21 @@ diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
 +                        .items_center()
 +                        .gap(px(10.))
 +                        .cursor_pointer()
-+                        .child(switch("launch-switch-Dedicated-gpu-s", now.dedicated_gpu, &t))
++                        .child(switch(
++                            "launch-switch-Dedicated-gpu-s",
++                            now.dedicated_gpu,
++                            &t,
++                        ))
 +                        .child(
 +                            text(theme::LABEL)
 +                                .text_color(t.ink_soft)
 +                                .child(tr("Dedicated graphics card")),
 +                        )
-+                        .child(text(theme::CAPTION).text_color(t.muted).child(tr(gpu_about)))
++                        .child(
++                            text(theme::CAPTION)
++                                .text_color(t.muted)
++                                .child(tr(gpu_about)),
++                        )
 +                        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
 +                            this.flip(Toggle::Gpu);
 +                            cx.notify();
@@ -645,11 +647,13 @@ diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
 +        } else {
 +            let gpus = horizon_launcher::gpu::list();
 +            if gpus.len() > 1 {
-+                let legacy = now.dedicated_gpu.then(|| {
++                let legacy = if now.dedicated_gpu {
 +                    gpus.iter()
 +                        .find(|gpu| !gpu.boot_vga)
 +                        .map(|gpu| gpu.id.clone())
-+                }).flatten();
++                } else {
++                    None
++                };
 +                let current = now.gpu.clone().or(legacy);
 +                let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
 +                choices = choices.child(
@@ -686,10 +690,12 @@ diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
 +                            },
 +                            &t,
 +                        )
-+                        .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
-+                            this.pick_instance_gpu(Some(id.clone()));
-+                            cx.notify();
-+                        })),
++                        .on_click(cx.listener(
++                            move |this, _: &ClickEvent, _, cx| {
++                                this.pick_instance_gpu(Some(id.clone()));
++                                cx.notify();
++                            },
++                        )),
 +                    );
 +                }
 +                list = list.child(
