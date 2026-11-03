@@ -1485,9 +1485,13 @@ fn execute(command: Cmd, as_json: bool) -> Result<(), String> {
             cmd.envs(accounts.look_env());
             let vars = instance.vars(cmd.get_program());
             cmd.envs(vars.iter().map(|(k, v)| (k, v)));
-            horizon_launcher::launch::limit_memory(&mut cmd, &instance.launch);
-            horizon_launcher::gpu::apply_to_command(&mut cmd, instance.launch.gpu.as_deref(), true);
-            let played = attached(horizon_launcher::launch::wrap(cmd, &instance.launch));
+            let settings = backend::Settings::load();
+            let launch = instance
+                .launch
+                .with_default_gpu(settings.rust_game_gpu.as_deref());
+            horizon_launcher::launch::limit_memory(&mut cmd, &launch);
+            horizon_launcher::gpu::apply_to_command(&mut cmd, launch.gpu.as_deref(), true);
+            let played = attached(horizon_launcher::launch::wrap(cmd, &launch));
             if let Err(e) = instances::record_play(&instance.id, started.elapsed()) {
                 eprintln!("Play time not saved: {e}");
             }
