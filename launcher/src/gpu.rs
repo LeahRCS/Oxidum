@@ -102,23 +102,21 @@ pub fn apply_to_current_process(gpu_id: Option<&str>) {
     let Some(gpu_id) = gpu_id else {
         return;
     };
-    let Some(gpu) = find(gpu_id) else {
+    let gpus = list();
+    let Some(gpu) = gpus.iter().find(|gpu| gpu.id == gpu_id) else {
         return;
     };
+    let has_proprietary_nvidia = gpus.iter().any(Gpu::proprietary_nvidia);
     for key in PRIME_ENV {
         std::env::remove_var(key);
     }
-    for (key, value) in prime_env(&gpu) {
+    for (key, value) in launcher_env(gpu, has_proprietary_nvidia) {
         std::env::set_var(key, value);
     }
 }
 
-/// PRIME variables for one explicit adapter. The display/default adapter needs no offload:
-/// clearing inherited PRIME variables is enough.
+/// PRIME variables for a child whose renderer can also select its exact wgpu adapter.
 fn prime_env(gpu: &Gpu) -> Vec<(&'static str, String)> {
-    if gpu.boot_vga {
-        return Vec::new();
-    }
     if gpu.proprietary_nvidia() {
         vec![
             ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
@@ -128,6 +126,21 @@ fn prime_env(gpu: &Gpu) -> Vec<(&'static str, String)> {
     } else {
         vec![("DRI_PRIME", gpu.dri_prime())]
     }
+}
+
+/// GPUI chooses its adapter internally, so an explicit launcher choice must constrain what Vulkan
+/// can see instead of relying on its HighPerformance preference. Mesa's trailing ! exposes only
+/// the selected device to Vulkan. NVIDIA's implicit Optimus layer can likewise hide NVIDIA when
+/// a non-NVIDIA adapter was chosen on a proprietary-NVIDIA hybrid system.
+fn launcher_env(gpu: &Gpu, has_proprietary_nvidia: bool) -> Vec<(&'static str, String)> {
+    if gpu.proprietary_nvidia() {
+        return prime_env(gpu);
+    }
+    let mut env = vec![("DRI_PRIME", format!("{}!", gpu.dri_prime()))];
+    if has_proprietary_nvidia && gpu.vendor != 0x10de {
+        env.push(("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()));
+    }
+    env
 }
 
 #[cfg(target_os = "linux")]
@@ -277,7 +290,38 @@ mod tests {
         );
 
         gpu.boot_vga = true;
-        assert!(prime_env(&gpu).is_empty());
+        assert_eq!(
+            prime_env(&gpu),
+            [
+                ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
+                ("__VK_LAYER_NV_optimus", "NVIDIA_only".into()),
+                ("__GLX_VENDOR_LIBRARY_NAME", "nvidia".into()),
+            ]
+        );
+    }
+
+    #[test]
+    fn launcher_environment_forces_the_named_mesa_adapter() {
+        let gpu = Gpu {
+            id: "pci:0000:00:02.0".into(),
+            name: "Intel Graphics".into(),
+            pci_slot: "0000:00:02.0".into(),
+            vendor: 0x8086,
+            device: 0,
+            driver: "i915".into(),
+            boot_vga: true,
+        };
+        assert_eq!(
+            launcher_env(&gpu, true),
+            [
+                ("DRI_PRIME", "pci-0000_00_02_0!".into()),
+                ("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()),
+            ]
+        );
+        assert_eq!(
+            launcher_env(&gpu, false),
+            [("DRI_PRIME", "pci-0000_00_02_0!".into())]
+        );
     }
 
     #[cfg(target_os = "linux")]
