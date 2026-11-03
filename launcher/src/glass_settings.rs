@@ -152,7 +152,7 @@ impl Launcher {
     }
 
     /// Linux: the physical GPU the launcher window itself uses on its next start.
-    fn launcher_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
+    pub(super) fn launcher_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
         if !cfg!(target_os = "linux") {
             return None;
         }
