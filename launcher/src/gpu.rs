@@ -252,6 +252,34 @@ mod tests {
         assert_eq!(gpu.dri_prime(), "pci-0000_03_00_0");
     }
 
+    #[test]
+    fn prime_environment_follows_the_selected_driver() {
+        let mut gpu = Gpu {
+            id: "pci:0000:03:00.0".into(),
+            name: "AMD Radeon".into(),
+            pci_slot: "0000:03:00.0".into(),
+            vendor: 0x1002,
+            device: 0,
+            driver: "amdgpu".into(),
+            boot_vga: false,
+        };
+        assert_eq!(prime_env(&gpu), [("DRI_PRIME", "pci-0000_03_00_0".into())]);
+
+        gpu.vendor = 0x10de;
+        gpu.driver = "nvidia".into();
+        assert_eq!(
+            prime_env(&gpu),
+            [
+                ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
+                ("__VK_LAYER_NV_optimus", "NVIDIA_only".into()),
+                ("__GLX_VENDOR_LIBRARY_NAME", "nvidia".into()),
+            ]
+        );
+
+        gpu.boot_vga = true;
+        assert!(prime_env(&gpu).is_empty());
+    }
+
     #[cfg(target_os = "linux")]
     #[test]
     fn database_names_prefer_the_model_in_brackets() {
