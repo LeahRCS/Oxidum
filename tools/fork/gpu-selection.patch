@@ -121,7 +121,7 @@ diff --git a/crates/horizon-client-render/src/gfx.rs b/crates/horizon-client-ren
 diff --git a/launcher/src/backend.rs b/launcher/src/backend.rs
 --- a/launcher/src/backend.rs
 +++ b/launcher/src/backend.rs
-@@ -3380,6 +3380,11 @@ pub struct Settings {
+@@ -3380,6 +3380,15 @@ pub struct Settings {
      /// What the window does while the game runs. Stays by default.
      #[serde(default)]
      pub while_playing: WhilePlaying,
@@ -130,6 +130,10 @@ diff --git a/launcher/src/backend.rs b/launcher/src/backend.rs
 +    /// including an external prime-run wrapper.
 +    #[serde(default, skip_serializing_if = "Option::is_none")]
 +    pub launcher_gpu: Option<String>,
++    /// Linux: the physical GPU Rust Minecraft instances use by default. Individual instances may
++    /// override it in their launch panel. None leaves adapter choice automatic/system-managed.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub rust_game_gpu: Option<String>,
      /// The accent colour on top of the appearance (`themes::Accent`). Horizon's violet by default.
      #[serde(default)]
      pub accent: crate::themes::Accent,
@@ -137,19 +141,27 @@ diff --git a/launcher/src/backend.rs b/launcher/src/backend.rs
 diff --git a/launcher/src/cli.rs b/launcher/src/cli.rs
 --- a/launcher/src/cli.rs
 +++ b/launcher/src/cli.rs
-@@ -1486,6 +1486,7 @@ fn execute(command: Cmd, as_json: bool) -> Result<(), String> {
+@@ -1485,8 +1485,13 @@ fn execute(command: Cmd, as_json: bool) -> Result<(), String> {
+             cmd.envs(accounts.look_env());
              let vars = instance.vars(cmd.get_program());
              cmd.envs(vars.iter().map(|(k, v)| (k, v)));
-             horizon_launcher::launch::limit_memory(&mut cmd, &instance.launch);
-+            horizon_launcher::gpu::apply_to_command(&mut cmd, instance.launch.gpu.as_deref(), true);
-             let played = attached(horizon_launcher::launch::wrap(cmd, &instance.launch));
+-            horizon_launcher::launch::limit_memory(&mut cmd, &instance.launch);
+-            let played = attached(horizon_launcher::launch::wrap(cmd, &instance.launch));
++            let settings = backend::Settings::load();
++            let launch = instance
++                .launch
++                .with_default_gpu(settings.rust_game_gpu.as_deref());
++            horizon_launcher::launch::limit_memory(&mut cmd, &launch);
++            horizon_launcher::gpu::apply_to_command(&mut cmd, launch.gpu.as_deref(), true);
++            let played = attached(horizon_launcher::launch::wrap(cmd, &launch));
              if let Err(e) = instances::record_play(&instance.id, started.elapsed()) {
                  eprintln!("Play time not saved: {e}");
+             }
 
 diff --git a/launcher/src/glass_settings.rs b/launcher/src/glass_settings.rs
 --- a/launcher/src/glass_settings.rs
 +++ b/launcher/src/glass_settings.rs
-@@ -151,6 +151,69 @@ impl Launcher {
+@@ -151,6 +151,132 @@ impl Launcher {
          current
      }
  
@@ -216,10 +228,73 @@ diff --git a/launcher/src/glass_settings.rs b/launcher/src/glass_settings.rs
 +        ))
 +    }
 +
++    /// Linux: the physical GPU Rust Minecraft instances use unless an instance overrides it.
++    pub(super) fn rust_game_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
++        if !cfg!(target_os = "linux") {
++            return None;
++        }
++        let gpus = horizon_launcher::gpu::list();
++        if gpus.is_empty() {
++            return None;
++        }
++        let t = self.theme;
++        let current = self.settings.rust_game_gpu.clone();
++        let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
++        choices = choices.child(
++            button(
++                "rust-game-gpu-system",
++                "Automatic / system",
++                if current.is_none() {
++                    Kind::Primary
++                } else {
++                    Kind::Secondary
++                },
++                &t,
++            )
++            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
++                this.settings.rust_game_gpu = None;
++                this.save_settings();
++                cx.notify();
++            })),
++        );
++        for (index, gpu) in gpus.into_iter().enumerate() {
++            let id = gpu.id.clone();
++            let selected = current.as_deref() == Some(id.as_str());
++            let label = match gpu.boot_vga {
++                true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
++                false => gpu.name.clone(),
++            };
++            choices = choices.child(
++                button(
++                    SharedString::from(format!("rust-game-gpu-{index}")),
++                    label,
++                    if selected {
++                        Kind::Primary
++                    } else {
++                        Kind::Secondary
++                    },
++                    &t,
++                )
++                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
++                    this.settings.rust_game_gpu = Some(id.clone());
++                    this.save_settings();
++                    cx.notify();
++                })),
++            );
++        }
++        Some(index_row(
++            0,
++            tr("Rust Minecraft graphics card"),
++            note("Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings."),
++            Some(choices.into_any_element()),
++            &t,
++        ))
++    }
++
      /// The cards, one per entry of [`SECTIONS`], in its order.
      fn glass_settings_sections(&mut self, b: Built, cx: &mut Context<Self>) -> Vec<Div> {
          let t = self.theme;
-@@ -187,6 +250,7 @@ impl Launcher {
+@@ -187,6 +313,7 @@ impl Launcher {
                  &t,
              ))
              .child(self.glass_accent_row(cx))
@@ -227,6 +302,17 @@ diff --git a/launcher/src/glass_settings.rs b/launcher/src/glass_settings.rs
              .child(self.home_background_row(cx))
              .child(self.language_row(cx))
              .child(self.while_playing_row(n, cx))
+@@ -198,7 +325,9 @@ impl Launcher {
+                 &t,
+             ));
+         let network = card().child(self.proxy_row(n, cx));
+-        let game = card().child(self.game_args_row(n, cx));
++        let game = card()
++            .children(self.rust_game_gpu_row(cx))
++            .child(self.game_args_row(n, cx));
+         let ai = card()
+             .child(self.no_ai_row(n, cx))
+             .children(self.agents_section(cx));
 
 diff --git a/launcher/src/gpu.rs b/launcher/src/gpu.rs
 new file mode 100644
@@ -587,7 +673,27 @@ diff --git a/launcher/src/launch.rs b/launcher/src/launch.rs
  }
  
  fn is_false(b: &bool) -> bool {
-@@ -287,7 +292,10 @@ impl Launch {
+@@ -250,6 +255,19 @@ impl Launch {
+         self.memory_limit_mb = limit;
+     }
+ 
++    /// Resolves this instance's GPU against Settings' Rust-game default. An explicit named GPU
++    /// wins; the older dedicated-GPU switch stays an override for backward compatibility; only an
++    /// instance with neither inherits the default.
++    pub fn with_default_gpu(&self, default: Option<&str>) -> Launch {
++        let mut out = self.clone();
++        if out.gpu.is_some() {
++            out.dedicated_gpu = false;
++        } else if !out.dedicated_gpu {
++            out.gpu = default.map(str::to_owned);
++        }
++        out
++    }
++
+     pub fn is_empty(&self) -> bool {
+         self == &Launch::default()
+     }
+@@ -287,7 +305,10 @@ impl Launch {
          if self.mangohud {
              parts.push(crate::i18n::tr("with MangoHud").to_string());
          }
@@ -599,6 +705,41 @@ diff --git a/launcher/src/launch.rs b/launcher/src/launch.rs
              parts.push(crate::i18n::tr("on the dedicated GPU").to_string());
          }
          match self.env.len() {
+
+diff --git a/launcher/src/launch/tests.rs b/launcher/src/launch/tests.rs
+--- a/launcher/src/launch/tests.rs
++++ b/launcher/src/launch/tests.rs
+@@ -84,6 +84,30 @@ fn the_players_own_memory_variable_wins() {
+     assert_eq!(memory_variable(&own).as_deref(), Some("4096"));
+ }
+ 
++#[test]
++fn instance_gpu_override_precedes_legacy_and_settings_default() {
++    let inherited = Launch::default().with_default_gpu(Some("pci:0000:01:00.0"));
++    assert_eq!(inherited.gpu.as_deref(), Some("pci:0000:01:00.0"));
++    assert!(!inherited.dedicated_gpu);
++
++    let legacy = Launch {
++        dedicated_gpu: true,
++        ..Launch::default()
++    }
++    .with_default_gpu(Some("pci:0000:02:00.0"));
++    assert_eq!(legacy.gpu, None);
++    assert!(legacy.dedicated_gpu);
++
++    let explicit = Launch {
++        dedicated_gpu: true,
++        gpu: Some("pci:0000:03:00.0".into()),
++        ..Launch::default()
++    }
++    .with_default_gpu(Some("pci:0000:04:00.0"));
++    assert_eq!(explicit.gpu.as_deref(), Some("pci:0000:03:00.0"));
++    assert!(!explicit.dedicated_gpu);
++}
++
+ #[test]
+ fn a_summary_says_what_runs() {
+     assert_eq!(Launch::default().summary(), None);
 
 diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
 --- a/launcher/src/launch_page.rs
@@ -661,7 +802,7 @@ diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
          ] {
              if !shown {
                  continue;
-@@ -411,7 +416,116 @@ impl Launcher {
+@@ -411,7 +416,123 @@ impl Launcher {
                      })),
              );
          }
@@ -712,11 +853,18 @@ diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
 +                    None
 +                };
 +                let current = now.gpu.clone().or(legacy);
++                let default_label = self.settings.rust_game_gpu.as_deref().map_or_else(
++                    || tr("Use Settings default (automatic)").to_string(),
++                    |id| {
++                        let name = horizon_launcher::gpu::name(id);
++                        trf("Use Settings default ({gpu})", &[("gpu", &name)])
++                    },
++                );
 +                let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
 +                choices = choices.child(
 +                    button(
 +                        "instance-gpu-system",
-+                        "Automatic / system",
++                        default_label,
 +                        if current.is_none() {
 +                            Kind::Primary
 +                        } else {
@@ -765,7 +913,7 @@ diff --git a/launcher/src/launch_page.rs b/launcher/src/launch_page.rs
 +                        .child(
 +                            text(theme::CAPTION)
 +                                .text_color(t.muted)
-+                                .child(tr("Choose which GPU renders this Rust Minecraft instance. Oxidum configures PRIME automatically.")),
++                                .child(tr("Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.")),
 +                        ),
 +                );
 +            }
@@ -795,9 +943,15 @@ diff --git a/launcher/src/lib.rs b/launcher/src/lib.rs
 diff --git a/launcher/src/main.rs b/launcher/src/main.rs
 --- a/launcher/src/main.rs
 +++ b/launcher/src/main.rs
-@@ -1138,6 +1138,11 @@ impl Launcher {
+@@ -1136,8 +1136,16 @@ impl Launcher {
+                             .map(|i| i.vars(cmd.get_program()))
+                             .unwrap_or_default();
                          cmd.envs(self.client_vars.iter().map(|(k, v)| (k, v)));
-                         let launch = instance.map(|i| i.launch).unwrap_or_default();
+-                        let launch = instance.map(|i| i.launch).unwrap_or_default();
++                        let launch = instance
++                            .map(|i| i.launch)
++                            .unwrap_or_default()
++                            .with_default_gpu(self.settings.rust_game_gpu.as_deref());
                          horizon_launcher::launch::limit_memory(&mut cmd, &launch);
 +                        horizon_launcher::gpu::apply_to_command(
 +                            &mut cmd,
@@ -807,7 +961,7 @@ diff --git a/launcher/src/main.rs b/launcher/src/main.rs
                          let cmd = horizon_launcher::launch::wrap(cmd, &launch);
                          self.client_home = cmd.get_current_dir().map(|d| d.to_path_buf());
                          match backend::spawn(Job::Client, cmd, self.tx.clone()) {
-@@ -3688,6 +3693,7 @@ impl Launcher {
+@@ -3688,6 +3696,7 @@ impl Launcher {
                          &t,
                      ))
                      .child(self.accent_row(cx))
@@ -815,7 +969,15 @@ diff --git a/launcher/src/main.rs b/launcher/src/main.rs
                      .child(self.home_background_row(cx))
                      .child(self.language_row(cx))
                      .child(self.while_playing_row(n + 3, cx))
-@@ -5271,10 +5277,15 @@ fn main() {
+@@ -3701,6 +3710,7 @@ impl Launcher {
+                     .child(group("Network", "globe"))
+                     .child(self.proxy_row(n + 4, cx))
+                     .child(group("Game", "gamepad"))
++                    .children(self.rust_game_gpu_row(cx))
+                     .child(self.game_args_row(n + 5, cx))
+                     .child(group("AI", "terminal"))
+                     .child(self.no_ai_row(n + 6, cx))
+@@ -5271,10 +5281,15 @@ fn main() {
      backend::cleanup_launcher_updates();
      // What the launcher downloads goes through the player's proxy, if they set one: the parts
      // that build their own agents (`horizon-port-pack`) are told before anything starts.
