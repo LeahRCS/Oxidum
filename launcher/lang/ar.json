@@ -62,7 +62,6 @@
   "Friends type it in Multiplayer, Add Server, once this computer is shared with them and Tailscale runs on theirs.": "يكتبها الأصدقاء في اللعب الجماعي > إضافة خادم، بمجرد مشاركة هذا الكمبيوتر معهم وتشغيل Tailscale لديهم.",
   "From my install": "من تثبيتي الخاص",
   "the update failed: {error}": "فشل التحديث: {error}",
-  "Mesa's DRI_PRIME=1, so Vulkan picks the other card.": "خاصية DRI_PRIME=1 في Mesa، لكي يختار Vulkan البطاقة الأخرى.",
   "New name": "اسم جديد",
   "Dark": "داكن",
   "Not now": "ليس الآن",
@@ -546,7 +545,6 @@
   "Made the instance {name} from the shared file.": "تم إنشاء النسخة {name} من الملف المُشارك.",
   "For the game and the commands; INST_NAME, INST_DIR and the other instance variables are set too.": "للعبة والأوامر؛ يتم تعيين متغيرات INST_NAME و INST_DIR ومتغيرات النسخ الأخرى أيضًا.",
   "copied from your folder": "تم النسخ من مجلدك",
-  "NVIDIA render offload: __NV_PRIME_RENDER_OFFLOAD and its Vulkan layer.": "خاصية تفريغ الرسوميات لنبريا: __NV_PRIME_RENDER_OFFLOAD و طبقة Vulkan الخاصة بها.",
   "Network": "الشبكة",
   "Waiting for Microsoft… the window goes on by itself.": "جاري انتظار مايكروسوفت… ستستمر النافذة تلقائيًا.",
   "Game files": "ملفات اللعبة",
@@ -1034,5 +1032,13 @@
   "Sign in with the account that owns Minecraft: Java Edition. Your name and skin come along to online servers, like in other launchers.": "سجّل الدخول بالحساب الذي يملك Minecraft: Java Edition. يرافقك اسمك ومظهرك إلى الخوادم عبر الإنترنت، كما في المشغلات الأخرى.",
   "Microsoft's own page opens in your browser. Horizon never sees your password.": "تُفتح صفحة Microsoft نفسها في متصفحك. لا يرى Horizon كلمة مرورك أبدًا.",
   "Colours the buttons, the switches and the sky. Pick one, or type any hex colour.": "يلوّن الأزرار والمفاتيح والسماء. اختر لونًا، أو اكتب أي لون بصيغة hex.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
+  "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "اختر بطاقة رسوميات بديلة لهذه النسخة من Minecraft المكتوبة بـ Rust، أو استخدم الإعداد الافتراضي من الإعدادات. يضبط Oxidum تقنية PRIME تلقائيًا.",
+  "Graphics card": "بطاقة الرسوميات",
+  "Launcher graphics card": "بطاقة رسوميات المشغّل",
+  "Rust Minecraft graphics card": "بطاقة رسوميات Minecraft بلغة Rust",
+  "Use Settings default (automatic)": "استخدام الإعداد الافتراضي من الإعدادات (تلقائي)",
+  "Use Settings default ({gpu})": "استخدام الإعداد الافتراضي من الإعدادات ({gpu})",
+  "on {gpu}": "على {gpu}",
+  "{gpu} (system default)": "{gpu} (إعداد النظام الافتراضي)"
 }
