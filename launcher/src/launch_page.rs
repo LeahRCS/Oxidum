@@ -430,13 +430,21 @@ impl Launcher {
                         .items_center()
                         .gap(px(10.))
                         .cursor_pointer()
-                        .child(switch("launch-switch-Dedicated-gpu-s", now.dedicated_gpu, &t))
+                        .child(switch(
+                            "launch-switch-Dedicated-gpu-s",
+                            now.dedicated_gpu,
+                            &t,
+                        ))
                         .child(
                             text(theme::LABEL)
                                 .text_color(t.ink_soft)
                                 .child(tr("Dedicated graphics card")),
                         )
-                        .child(text(theme::CAPTION).text_color(t.muted).child(tr(gpu_about)))
+                        .child(
+                            text(theme::CAPTION)
+                                .text_color(t.muted)
+                                .child(tr(gpu_about)),
+                        )
                         .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
                             this.flip(Toggle::Gpu);
                             cx.notify();
@@ -446,11 +454,14 @@ impl Launcher {
         } else {
             let gpus = horizon_launcher::gpu::list();
             if gpus.len() > 1 {
-                let legacy = now.dedicated_gpu.then(|| {
-                    gpus.iter()
-                        .find(|gpu| !gpu.boot_vga)
-                        .map(|gpu| gpu.id.clone())
-                }).flatten();
+                let legacy = now
+                    .dedicated_gpu
+                    .then(|| {
+                        gpus.iter()
+                            .find(|gpu| !gpu.boot_vga)
+                            .map(|gpu| gpu.id.clone())
+                    })
+                    .flatten();
                 let current = now.gpu.clone().or(legacy);
                 let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
                 choices = choices.child(
@@ -487,10 +498,12 @@ impl Launcher {
                             },
                             &t,
                         )
-                        .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
-                            this.pick_instance_gpu(Some(id.clone()));
-                            cx.notify();
-                        })),
+                        .on_click(cx.listener(
+                            move |this, _: &ClickEvent, _, cx| {
+                                this.pick_instance_gpu(Some(id.clone()));
+                                cx.notify();
+                            },
+                        )),
                     );
                 }
                 list = list.child(
