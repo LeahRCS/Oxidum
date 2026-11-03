@@ -255,6 +255,19 @@ impl Launch {
         self.memory_limit_mb = limit;
     }
 
+    /// Resolves this instance's GPU against Settings' Rust-game default. An explicit named GPU
+    /// wins; the older dedicated-GPU switch stays an override for backward compatibility; only an
+    /// instance with neither inherits the default.
+    pub fn with_default_gpu(&self, default: Option<&str>) -> Launch {
+        let mut out = self.clone();
+        if out.gpu.is_some() {
+            out.dedicated_gpu = false;
+        } else if !out.dedicated_gpu {
+            out.gpu = default.map(str::to_owned);
+        }
+        out
+    }
+
     pub fn is_empty(&self) -> bool {
         self == &Launch::default()
     }
