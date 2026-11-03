@@ -1,5 +1,5 @@
 //! The launcher's night look ("Night" in `docs/design-system.md`): a pixel night sky that turns to
-//! a sunset at the bottom, plates over it only where text needs them, one violet for the main
+//! a sunset at the bottom, plates over it only where text needs them, Oxidum copper for the main
 //! action, focus and progress, and Bricolage Grotesque (SIL OFL 1.1, `fonts/OFL-BricolageGrotesque.txt`).
 //! Light players get the same look at dawn ([`DAWN`]). The game's menus don't use it.
 use crate::{step, Blocks, Step, Web};
@@ -87,16 +87,16 @@ pub const NIGHT: Night = Night {
     ink: 0xf4f2ff,
     ink_soft: 0xcfc9ea,
     muted: 0xa59fc6,
-    accent: 0x7656fa,
-    accent_hi: 0xa08cff,
+    accent: 0xb85b29,
+    accent_hi: 0xeb9655,
     on_accent: 0xffffff,
-    success: 0x5fd39a,
-    warn: 0xf5b45a,
+    success: 0x55ad93,
+    warn: 0xd9a45c,
     danger: 0xff8a78,
     dark: true,
 };
 
-/// The light appearance: the same sky at dawn, pale blue to peach, with the night's violet.
+/// The light appearance: the same sky at dawn, pale blue to peach, with Oxidum's copper accent.
 pub const DAWN: Night = Night {
     sky: [0xc9d3f2, 0xdcd8f3, 0xead5ec, 0xf5d3d8, 0xf9d6bd, 0xfbe4c6],
     page: 0xe9e6f6,
@@ -111,11 +111,11 @@ pub const DAWN: Night = Night {
     ink: 0x1b1530,
     ink_soft: 0x3b3354,
     muted: 0x585071,
-    accent: 0x5b3fd6,
-    accent_hi: 0x5333c9,
+    accent: 0x934018,
+    accent_hi: 0x843a16,
     on_accent: 0xffffff,
-    success: 0x136336,
-    warn: 0x7a4f00,
+    success: 0x286858,
+    warn: 0x755000,
     danger: 0xa3301d,
     dark: false,
 };
