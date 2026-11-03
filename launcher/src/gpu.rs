@@ -88,15 +88,9 @@ pub fn apply_to_command(cmd: &mut Command, gpu_id: Option<&str>, rust_game: bool
         cmd.env(HORIZON_GPU, &gpu.id);
         cmd.env(HORIZON_GPU_NAME, &gpu.name);
     }
-    apply_prime(
-        &gpu,
-        |key| {
-            cmd.env_remove(key);
-        },
-        |key, value| {
-            cmd.env(key, value);
-        },
-    );
+    for (key, value) in prime_env(&gpu) {
+        cmd.env(key, value);
+    }
 }
 
 /// Apply the launcher's saved GPU before GPUI/wgpu starts.
@@ -114,40 +108,25 @@ pub fn apply_to_current_process(gpu_id: Option<&str>) {
     for key in PRIME_ENV {
         std::env::remove_var(key);
     }
-    apply_prime(
-        &gpu,
-        |key| {
-            std::env::remove_var(key);
-        },
-        |key, value| {
-            std::env::set_var(key, value);
-        },
-    );
+    for (key, value) in prime_env(&gpu) {
+        std::env::set_var(key, value);
+    }
 }
 
-fn apply_prime(
-    gpu: &Gpu,
-    mut remove: impl FnMut(&str),
-    mut set: impl FnMut(&str, &str),
-) {
-    // The display/default adapter needs no offload variables. Clearing inherited PRIME is enough.
+/// PRIME variables for one explicit adapter. The display/default adapter needs no offload:
+/// clearing inherited PRIME variables is enough.
+fn prime_env(gpu: &Gpu) -> Vec<(&'static str, String)> {
     if gpu.boot_vga {
-        for key in PRIME_ENV {
-            remove(key);
-        }
-        return;
+        return Vec::new();
     }
-
     if gpu.proprietary_nvidia() {
-        // NVIDIA PRIME Render Offload. On ordinary hybrid laptops there is one NVIDIA dGPU;
-        // Horizon itself is pinned exactly through HORIZON_GPU as well.
-        set("__NV_PRIME_RENDER_OFFLOAD", "1");
-        set("__VK_LAYER_NV_optimus", "NVIDIA_only");
-        set("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
+        vec![
+            ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
+            ("__VK_LAYER_NV_optimus", "NVIDIA_only".into()),
+            ("__GLX_VENDOR_LIBRARY_NAME", "nvidia".into()),
+        ]
     } else {
-        // Mesa accepts a PCI bus selector, so this is stable even when DRM card numbers reorder.
-        let selector = gpu.dri_prime();
-        set("DRI_PRIME", &selector);
+        vec![("DRI_PRIME", gpu.dri_prime())]
     }
 }
 
