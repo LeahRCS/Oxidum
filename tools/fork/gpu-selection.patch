@@ -233,6 +233,7 @@ diff --git a/launcher/src/glass_settings.rs b/launcher/src/glass_settings.rs
              .child(self.while_playing_row(n, cx))
 
 diff --git a/launcher/src/gpu.rs b/launcher/src/gpu.rs
+new file mode 100644
 --- /dev/null
 +++ b/launcher/src/gpu.rs
 @@ -0,0 +1,292 @@
