@@ -2826,7 +2826,7 @@ impl Launcher {
             "horizon-free",
             "Horizon-Free",
             "globe",
-            "https://github.com/0CYBER/horizon-free".to_string(),
+            "https://github.com/LeahRCS/horizon-free".to_string(),
         ));
         if !self.links.sponsor.is_empty() {
             foot = foot.child(link(
