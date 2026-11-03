@@ -1486,6 +1486,11 @@ fn execute(command: Cmd, as_json: bool) -> Result<(), String> {
             let vars = instance.vars(cmd.get_program());
             cmd.envs(vars.iter().map(|(k, v)| (k, v)));
             horizon_launcher::launch::limit_memory(&mut cmd, &instance.launch);
+            horizon_launcher::gpu::apply_to_command(
+                &mut cmd,
+                instance.launch.gpu.as_deref(),
+                true,
+            );
             let played = attached(horizon_launcher::launch::wrap(cmd, &instance.launch));
             if let Err(e) = instances::record_play(&instance.id, started.elapsed()) {
                 eprintln!("Play time not saved: {e}");
