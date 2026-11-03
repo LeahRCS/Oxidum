@@ -6,17 +6,9 @@ name: nightly audit
 # (tools/ci/parity_issues.py). The bugs session picks those up. See docs/release-flow.md.
 #   gh workflow run "nightly audit"                    # now
 #   gh workflow run "nightly audit" -f dry_run=true    # the audit, without touching issues
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  schedule:
-    # GitHub's schedules are in UTC: both, and the first step keeps the one that is 03:07 in Paris today.
-    - cron: '7 1 * * *'
-    - cron: '7 2 * * *'
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: Run the audit, but only print what it would do with issues
-        type: boolean
-        default: false
 permissions:
   contents: read
   issues: write
@@ -29,6 +21,7 @@ env:
 
 jobs:
   audit:
+    if: github.repository == 'horizon-rust/horizon'
     # The Mac mini's runners only: the audit compares with the previous one, so it stays on one platform.
     runs-on: [self-hosted, horizon-game, macOS]
     timeout-minutes: 240  # every harness (~80 min) plus lan_integration (~40 min an attempt under load, retried)

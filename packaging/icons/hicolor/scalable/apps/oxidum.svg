@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="oxidation" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EB9655"/>
+      <stop offset="46%" stop-color="#B85B29"/>
+      <stop offset="54%" stop-color="#71866B"/>
+      <stop offset="100%" stop-color="#55AD93"/>
+    </linearGradient>
+    <linearGradient id="seam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#EB9655"/>
+      <stop offset="48%" stop-color="#C87335"/>
+      <stop offset="100%" stop-color="#55AD93"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="38" fill="#181A22"/>
+  <rect x="52" y="28" width="96" height="144" rx="37"
+        fill="none" stroke="url(#oxidation)" stroke-width="24"/>
+  <rect x="0" y="92" width="200" height="16" fill="url(#seam)"/>
+</svg>

@@ -10,11 +10,11 @@ use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 
 pub const REPO: &str = "horizon-rust/horizon";
-pub const LAUNCHER_REPO: &str = "0CYBER/horizon-free";
+pub const LAUNCHER_REPO: &str = "LeahRCS/Oxidum";
 /// Horizon-free: the game starts without a Microsoft account that owns it, in the window and on
 /// the command line. Downloads still need an owner, so the game comes from the player's own install.
 pub const OFFLINE_PLAY: bool = true;
-pub const README_URL: &str = "https://github.com/horizon-rust/horizon/blob/main/launcher/README.md";
+pub const README_URL: &str = "https://github.com/LeahRCS/Oxidum";
 /// The players' page on connecting an AI agent (the website's docs/agents.md).
 pub const AGENT_DOCS_URL: &str = "https://playhorizon.dev/docs/agents";
 /// This launcher's version: the release workflow sets `HORIZON_LAUNCHER_VERSION` from the
@@ -129,7 +129,7 @@ pub const LAUNCHER_ASSET: Option<&str> = match OWN_ASSETS {
 /// one file. A launcher running from one updates by replacing that file ([`appimage_path`]), so it
 /// needs this archive rather than the platform's `.tar.gz`.
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-pub const LAUNCHER_APPIMAGE_ASSET: Option<&str> = Some("horizon-launcher-linux-x86_64.AppImage");
+pub const LAUNCHER_APPIMAGE_ASSET: Option<&str> = Some("oxidum-linux-x86_64.AppImage");
 #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
 pub const LAUNCHER_APPIMAGE_ASSET: Option<&str> = None;
 
@@ -4115,9 +4115,9 @@ pub fn {f}("
     }
 
     #[test]
-    fn the_accent_is_violet_unless_picked_and_an_unknown_one_keeps_the_rest() {
+    fn the_accent_is_oxidum_unless_picked_and_an_unknown_one_keeps_the_rest() {
         use crate::themes::Accent;
-        assert_eq!(Settings::parse("{}").accent, Accent::VIOLET);
+        assert_eq!(Settings::parse("{}").accent, Accent::OXIDUM);
         let teal =
             Settings::parse(r#"{"accent": "teal", "background": "background-0123456789ab.png"}"#);
         assert_eq!(
@@ -4127,7 +4127,7 @@ pub fn {f}("
         let future = Settings::parse(r#"{"accent": "plaid", "game_args": "--x"}"#);
         assert_eq!(
             (future.accent, future.game_args.as_str()),
-            (Accent::VIOLET, "--x")
+            (Accent::OXIDUM, "--x")
         );
     }
 
@@ -4274,7 +4274,7 @@ pub fn {f}("
         #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
         assert_eq!(
             launcher_asset_running_from(true),
-            Some("horizon-launcher-linux-x86_64.AppImage")
+            Some("oxidum-linux-x86_64.AppImage")
         );
     }
 

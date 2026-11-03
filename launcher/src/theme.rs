@@ -1,6 +1,6 @@
 //! The launcher's view of Horizon's design tokens (`crates/horizon-theme`, described in
 //! `docs/design-system.md`): the night look (`horizon_theme::night`, a night sky or a dawn with
-//! Horizon's violet) in Bricolage Grotesque, with Geist Mono for paths and codes (all bundled, SIL
+//! Oxidum's copper) in Bricolage Grotesque, with Geist Mono for paths and codes (all bundled, SIL
 //! Open Font License). Screens not rebuilt yet draw the Blocks parts in the night's colours.
 use gpui::{rgb, Hsla, WindowAppearance};
 use horizon_launcher::backend::Appearance;
@@ -98,7 +98,7 @@ pub fn pinned_dark(choice: Appearance) -> Option<bool> {
 
 impl Theme {
     /// The pinned look (`pinned_dark`: dark unless the player picked another), the system's when
-    /// they asked to follow it, in the player's accent.
+    /// they asked to follow it, in the player's selected accent.
     /// This look under another sky (a launcher theme from the Wardrobe), top to bottom.
     pub fn with_sky(mut self, sky: [u32; 6]) -> Self {
         self.night.sky = sky;

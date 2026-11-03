@@ -28,7 +28,7 @@ impl Launcher {
                                 .child(tr("Support the work below")),
                         )
                         .child(ui::text(14., FontWeight::NORMAL, ink::BODY).child(tr(
-                            "Horizon is built in the open. Sponsors fund the next release.",
+                            "Oxidum is built in the open. Sponsors fund the next release.",
                         ))),
                 )
                 .child(

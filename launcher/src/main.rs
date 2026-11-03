@@ -899,7 +899,7 @@ impl Launcher {
             None => native_mods::base_for(plays.as_deref(), &self.installed, false),
         };
         let Some(base) = base else {
-            let error = tr("Install Horizon first.").to_string();
+            let error = tr("Install Oxidum first.").to_string();
             self.native_log_preflight(&error);
             self.native_error = Some(error);
             return;
@@ -1341,7 +1341,7 @@ impl Launcher {
                                 .and_then(|since| backend::crash_report_since(&home, since));
                             if error.is_some() && report.is_none() && self.switched_to_dx12() {
                                 self.client_error = Some(
-                                    "Horizon's Vulkan renderer crashed while starting on this \
+                                    "Oxidum's Vulkan renderer crashed while starting on this \
                                      graphics card, so the game now uses DirectX 12. Press Play \
                                      to start it again. Video Settings > Graphics API switches \
                                      back."
@@ -1425,7 +1425,7 @@ impl Launcher {
         for home in homes {
             match backend::switch_to_dx12(&home) {
                 Ok(changed) => switched |= changed,
-                Err(e) => eprintln!("Horizon launcher: could not switch to DirectX 12: {e}"),
+                Err(e) => eprintln!("Oxidum launcher: could not switch to DirectX 12: {e}"),
             }
         }
         switched
@@ -1933,35 +1933,35 @@ fn version_tag(tag: &str) -> Div {
         )
 }
 
-/// Horizon's mark: two stems, their reflection below, and the horizon across in the accent.
-fn mark(size: f32, t: &Theme) -> Div {
+/// Oxidum's mark: copper above the seam, oxidized patina below it.
+fn mark(size: f32, _t: &Theme) -> Div {
     let u = size / 16.;
-    let stem = |x: f32, y: f32, color: Hsla| {
+    let copper_hi: Hsla = gpui::rgb(0xeb9655).into();
+    let copper: Hsla = gpui::rgb(0xb85b29).into();
+    let transition: Hsla = gpui::rgb(0x71866b).into();
+    let patina: Hsla = gpui::rgb(0x55ad93).into();
+    let bar = |x: f32, y: f32, w: f32, h: f32, color: Hsla| {
         div()
             .absolute()
             .left(px(x * u))
             .top(px(y * u))
-            .w(px(2. * u))
-            .h(px(4. * u))
+            .w(px(w * u))
+            .h(px(h * u))
             .bg(color)
     };
     div()
         .relative()
         .flex_none()
         .size(px(size))
-        .child(stem(4., 3., t.ink))
-        .child(stem(10., 3., t.ink))
-        .child(stem(4., 8., t.ink.opacity(0.36)))
-        .child(stem(10., 8., t.ink.opacity(0.36)))
-        .child(
-            div()
-                .absolute()
-                .left(px(u))
-                .top(px(7. * u))
-                .w(px(14. * u))
-                .h(px(u))
-                .bg(t.accent),
-        )
+        .child(bar(5., 2., 6., 2., copper_hi))
+        .child(bar(3., 4., 2., 3., copper))
+        .child(bar(11., 4., 2., 3., copper))
+        .child(bar(3., 8., 2., 3., transition))
+        .child(bar(11., 8., 2., 3., patina))
+        .child(bar(5., 11., 6., 2., patina))
+        .child(bar(1., 7., 6., 1., copper_hi))
+        .child(bar(7., 7., 3., 1., transition))
+        .child(bar(10., 7., 5., 1., patina))
 }
 
 /// The last thing the player did was press Tab: focused controls show a ring (a click focuses them
@@ -2823,10 +2823,10 @@ impl Launcher {
         // Horizon-Free: link to the fork's repository.
         foot = foot.child(div().h(px(1.)).w_full().bg(t.rule).my(px(4.)));
         foot = foot.child(link(
-            "horizon-free",
-            "Horizon-Free",
+            "oxidum",
+            "Oxidum",
             "globe",
-            "https://github.com/0CYBER/horizon-free".to_string(),
+            "https://github.com/LeahRCS/Oxidum".to_string(),
         ));
         if !self.links.sponsor.is_empty() {
             foot = foot.child(link(
@@ -2876,7 +2876,7 @@ impl Launcher {
                 .child(
                     shell::text(theme::night::TITLE, shell::c(n.ink))
                         .font_family(theme::DISPLAY_FONT)
-                        .child("Horizon"),
+                        .child("Oxidum"),
                 )
         });
         shell::sidebar_plate(&t)
@@ -3087,7 +3087,7 @@ impl Launcher {
                 &[("version", &version)],
             ),
             Some(true) => trf(
-                "Not prepared. Horizon can download Minecraft {version} from Mojang for your account, or use your own install.",
+                "Not prepared. Oxidum can download Minecraft {version} from Mojang for your account, or use your own install.",
                 &[("version", &version)],
             ),
             Some(false) => trf(
@@ -3164,7 +3164,7 @@ impl Launcher {
             || {
                 div()
                     .child(if owner {
-                        tr("None needed: Horizon downloads Minecraft from Mojang for your account.")
+                        tr("None needed: Oxidum downloads Minecraft from Mojang for your account.")
                     } else {
                         tr("Not found. Choose the folder where your launcher keeps Minecraft.")
                     })
@@ -3443,7 +3443,7 @@ impl Launcher {
             .child(
                 text(theme::HEADING)
                     .text_color(t.ink)
-                    .child(tr("Horizon crashed")),
+                    .child(tr("Oxidum crashed")),
             );
         if !crash.summary.is_empty() {
             body = body.child(div().text_color(t.ink_soft).child(crash.summary));
@@ -3705,7 +3705,7 @@ impl Launcher {
                     .child(group("AI", "terminal"))
                     .child(self.no_ai_row(n + 6, cx))
                     .child(group("About", "info-box"))
-                    .child(index_row(n + 7, "Horizon", Some(plain(&horizon)), horizon_action, &t))
+                    .child(index_row(n + 7, "Oxidum", Some(plain(&horizon)), horizon_action, &t))
                     .child(index_row(
                         n + 8,
                         tr("Launcher"),
@@ -3744,7 +3744,7 @@ impl Launcher {
                             n + 11,
                             tr("Applications menu"),
                             Some(plain(if self.settings.desktop_entry() {
-                                "Horizon and its icon are in your desktop's menu."
+                                "Oxidum and its icon are in your desktop's menu."
                             } else {
                                 "Not in your desktop's menu."
                             })),
@@ -3787,7 +3787,7 @@ impl Launcher {
             .child(tr("The build compiles the game: 20 to 30 minutes and a few GB of disk the first time (it downloads Rust), a few minutes after that.").to_string())
             .children(self.native_update.as_ref().map(|newer| {
                 div().text_color(t.warn).child(trf(
-                    "This moves the instance to Horizon {version}. It compiles the game from scratch, so it takes longer than a normal rebuild: up to 30 minutes.",
+                    "This moves the instance to Oxidum {version}. It compiles the game from scratch, so it takes longer than a normal rebuild: up to 30 minutes.",
                     &[("version", &native_status::horizon_label(newer))],
                 ))
             }));
@@ -3828,7 +3828,7 @@ impl Launcher {
             .mt(px(8.))
             .p(px(12.))
             .bg(t.well)
-            .child(div().text_color(t.danger).child(tr("These mods were made for different Horizon versions").to_string()))
+            .child(div().text_color(t.danger).child(tr("These mods were made for different Oxidum versions").to_string()))
             .child(list.to_owned())
             .child(tr("They often still work together. If the build fails, install versions made for the same Nightly.").to_string())
             .child(
@@ -4169,7 +4169,7 @@ impl Launcher {
             }
             Some(SignInState::Done(Err(e))) => div().text_color(t.danger).child(e.clone()),
             None if self.accounts.accounts.is_empty() => div().child(tr(
-                "Horizon needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.",
+                "Oxidum needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.",
             )),
             None => div().child(tr("Add another account.")),
         };
@@ -4534,7 +4534,7 @@ impl Launcher {
                 "Imported builds",
                 build_import::is_imported,
                 Some(tr(
-                    "Unsigned: you picked these programs yourself, and Horizon can't \
+                    "Unsigned: you picked these programs yourself, and Oxidum can't \
                     check where they came from. Updates never replace them.",
                 )),
                 &on_disk,
@@ -4730,7 +4730,7 @@ impl Launcher {
                                 .child(tr("Support the work below")),
                         )
                         .child(text(theme::UI).text_color(t.muted).child(tr(
-                            "Horizon is built in the open. Sponsors fund the next release.",
+                            "Oxidum is built in the open. Sponsors fund the next release.",
                         ))),
                 )
                 .child(
@@ -5241,8 +5241,8 @@ fn key_bindings() -> Vec<KeyBinding> {
 fn menus() -> Vec<Menu> {
     vec![
         Menu {
-            name: "Horizon Launcher".into(),
-            items: vec![MenuItem::action("Quit Horizon Launcher", Quit)],
+            name: "Oxidum Launcher".into(),
+            items: vec![MenuItem::action("Quit Oxidum Launcher", Quit)],
             disabled: false,
         },
         Menu {
@@ -5477,10 +5477,10 @@ mod tests {
     #[test]
     fn the_app_menu_has_quit() {
         let menus = super::menus();
-        assert_eq!(menus[0].name, "Horizon Launcher");
+        assert_eq!(menus[0].name, "Oxidum Launcher");
         assert!(matches!(
             &menus[0].items[0],
-            gpui::MenuItem::Action { name, .. } if name == "Quit Horizon Launcher"
+            gpui::MenuItem::Action { name, .. } if name == "Quit Oxidum Launcher"
         ));
     }
 

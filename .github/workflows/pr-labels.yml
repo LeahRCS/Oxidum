@@ -7,15 +7,15 @@ name: pr labels
 # - It checks out main's script only (`ref: main`), never the pull request's head or merge commit.
 # - The script reads the event file (the description is data in JSON, never in a shell line) and the API's list of
 #   changed file names; it runs, builds and imports nothing of theirs. The token writes labels only.
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize, edited, ready_for_review]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   label:
     # Title-only edits change nothing: skip them before a runner starts.
-    if: github.event.action != 'edited' || github.event.changes.body != null
+    if: github.repository == 'horizon-rust/horizon' && (github.event.action != 'edited' || github.event.changes.body != null)
     # One of playhorizon's small runners, out of GitHub's shared pool: it runs main's script only (above), so a fork's
     # pull request runs none of its code there (docs/ci-runners.md). SELF_HOSTED_CI=off: GitHub's runners.
     runs-on: ${{ vars.SELF_HOSTED_CI != 'off' && fromJSON('["self-hosted", "linux", "playhorizon-light"]') || 'ubuntu-latest' }}

@@ -8,11 +8,8 @@ name: claim command
 # - It checks out main's script and list only, never a pull request; it reads threads through the API.
 # - The comment's text and author reach the script as env vars, never in a shell line. The token stays in the step
 #   and can only write issues (assignees, comments, reactions).
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  issue_comment:
-    types: [created]
-  schedule:
-    - cron: "23 5 * * *"
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +17,7 @@ jobs:
   command:
     # Every other comment skips here, before a runner starts. Pull requests are answered by the script.
     if: >-
+      github.repository == 'horizon-rust/horizon' &&
       github.event_name == 'issue_comment' && github.event.comment.user.type != 'Bot' && (
       startsWith(github.event.comment.body, '/claim') ||
       startsWith(github.event.comment.body, '/unclaim') ||

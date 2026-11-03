@@ -1,49 +1,55 @@
-> [!WARNING]
-> This repository is not in any way affiliated with Horizon original devs or Microsoft/Mojang.
->
-> The goal of this fork is to return local account play with **YOUR** minecraft assets without Microsoft profile authentication
->
-> You can download it's builds in [RELEASES](https://github.com/0CYBER/horizon-free/releases/latest) section
->
-> Lower part of the README is fully original
-
-<br><br><br><br>
-
 <p align="center">
-  <img src="docs/media/banner.webp" alt="The Horizon website: the game you know, rebuilt in Rust" width="100%">
+  <img src="packaging/icons/hicolor/scalable/apps/oxidum.svg" alt="Oxidum logo" width="128">
 </p>
 
+<h1 align="center">Oxidum</h1>
+
+<p align="center"><b>Rust-powered. Linux-focused. Portable by design.</b></p>
+
 <p align="center">
-  <a href="https://github.com/horizon-rust/horizon/actions/workflows/ci.yml"><img src="https://github.com/horizon-rust/horizon/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/LeahRCS/Oxidum/actions/workflows/oxidum-appimage.yml"><img src="https://github.com/LeahRCS/Oxidum/actions/workflows/oxidum-appimage.yml/badge.svg?branch=main" alt="Oxidum AppImage"></a>
+  <a href="https://github.com/LeahRCS/Oxidum/actions/workflows/ci.yml"><img src="https://github.com/LeahRCS/Oxidum/actions/workflows/ci.yml/badge.svg?branch=main" alt="Checks"></a>
   <img src="https://img.shields.io/badge/Minecraft-Java%2026.3-5D9C3F" alt="Minecraft Java 26.3">
   <img src="https://img.shields.io/badge/Rust-stable-B7410E?logo=rust&logoColor=white" alt="Rust">
   <img src="https://img.shields.io/badge/vanilla%20parity-100%25-F0795A" alt="Vanilla parity 100%">
   <a href="#project-status"><img src="https://img.shields.io/badge/player--visible%20gaps-833%20open-F0795A" alt="Player-visible gaps open"></a>
-  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-2A2470" alt="Linux, macOS and Windows">
+  <img src="https://img.shields.io/badge/platform-Linux%20AppImage-2A2470" alt="Linux AppImage">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3B2F7E" alt="MIT license"></a>
 </p>
 
-<p align="center">
-  <a href="https://playhorizon.dev"><b>Website</b></a> ·
-  <a href="#download"><b>Download</b></a> ·
-  <a href="https://playhorizon.dev/docs/"><b>Documentation</b></a> ·
-  <a href="https://github.com/horizon-rust/horizon/releases"><b>Release notes</b></a> ·
-  <a href="ROADMAP.md"><b>Roadmap</b></a> ·
-  <a href="#project-status"><b>Project status</b></a> ·
-  <a href="#contributing"><b>Contributing</b></a>
-</p>
+Oxidum brings the speed of Rust to the most beloved square game of all time, together with the portability of AppImage for Linux. Built on the amazing work of Horizon-Free, Oxidum extends the project with its own features, Linux-focused improvements, and a self-updating AppImage distribution designed to run seamlessly across modern Linux distributions.
 
-# Horizon
+> [!IMPORTANT]
+> Oxidum is a community project derived from [Horizon-Free](https://github.com/0CYBER/horizon-free), which itself is based on [Horizon](https://github.com/horizon-rust/horizon). We preserve that lineage explicitly and are not affiliated with Mojang or Microsoft.
 
-Minecraft: Java Edition 26.3, rewritten in Rust. Same worlds, same rules, same terrain, checked against the Java game by more than 300 differential harnesses. Free, open source and unofficial.
-
-> Not an official Minecraft product, nor approved by or associated with Mojang or Microsoft. Horizon contains no Minecraft code, assets or data: you need your own copy of Java Edition 26.3.
+> [!NOTE]
+> Oxidum does not ship Minecraft code, assets or game data. It uses the player's own Minecraft files. Local/offline profile support follows the Horizon-Free branch.
 
 ## Download
 
-Get **the Horizon launcher** from [playhorizon.dev](https://playhorizon.dev) or [the launcher releases](https://github.com/horizon-rust/horizon/releases?q=launcher-v&expanded=true) (Linux x86-64, macOS on Apple Silicon, macOS on Intel from the next Nightly, Windows x64). It installs and updates the game, prepares its files from your copy of Minecraft, and updates itself.
+Linux x86-64 builds are published as a self-updating AppImage in this repository's [Releases](https://github.com/LeahRCS/Oxidum/releases).
 
-**You need** a Microsoft account that owns Java Edition ([why](docs/microsoft-account.md)) and a GPU with Vulkan or OpenGL 3.3 (Linux), Vulkan or DirectX 12 (Windows), or a Mac (Apple Silicon, or Intel from the next Nightly). An existing Minecraft install (official launcher, Prism, MultiMC...) is reused; without one, Play downloads 26.3 from Mojang for your account. Step by step: [Install and first launch](https://playhorizon.dev/docs/install).
+The distributed asset is named `oxidum-linux-x86_64.AppImage`. Once installed, Oxidum checks this repository's launcher releases and can replace its own AppImage from inside the launcher.
+
+## Why Oxidum
+
+- **AppImage-first:** one portable Linux package, built automatically for every mirrored launcher release.
+- **Self-updating:** the launcher updates the AppImage it is currently running from.
+- **Horizon-Free foundation:** keeps the fork's local/offline-oriented behavior and upstream compatibility work.
+- **Our own layer:** Oxidum branding, Linux integration, packaging, release automation and future project-specific features.
+- **Upstream-aware:** source synchronization is reviewed separately, while release mirroring can follow upstream launcher tags automatically.
+
+## Project lineage
+
+`Horizon → Horizon-Free → Oxidum`
+
+Oxidum intentionally stays close to Horizon-Free so upstream fixes remain practical to adopt. Project-specific changes live as a small reproducible overlay where possible.
+
+---
+
+## Upstream runtime and feature reference
+
+The sections below describe the Horizon-derived runtime and capabilities Oxidum is built on.
 
 <table>
   <tr>

@@ -7,15 +7,16 @@ name: triage command
 # - `issue_comment` always runs this file from main, whoever comments and wherever.
 # - It checks out main's script and list only, never a pull request; it reads threads through the API.
 # - The comment's text and author reach the script as env vars, never in a shell line. The token stays in the step.
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  issue_comment:
-    types: [created]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   command:
     # Every other comment skips here, before a runner starts.
     if: >-
+      github.repository == 'horizon-rust/horizon' &&
       github.event.comment.user.type != 'Bot' && (
       startsWith(github.event.comment.body, '/close') ||
       startsWith(github.event.comment.body, '/reopen') ||

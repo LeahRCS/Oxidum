@@ -7,14 +7,14 @@ name: overlap note
 # - The checkout is main's (`ref: main`), blobless, with the script alone on disk. The pull requests' heads are fetched
 #   as git objects and only diffed, never checked out; git runs with hooks, fsmonitor, external diff and textconv off.
 # - The rest comes from the API. The token writes the comment only.
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   note:
-    if: github.event.pull_request.base.ref == 'main'
+    if: github.repository == 'horizon-rust/horizon' && github.event.pull_request.base.ref == 'main'
     # A newer push replaces the note being computed.
     concurrency:
       group: overlap-note-${{ github.event.pull_request.number }}

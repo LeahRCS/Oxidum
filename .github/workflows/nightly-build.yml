@@ -32,39 +32,9 @@ run-name: nightly build${{ inputs.request && format(' (request {0})', inputs.req
 #   gh workflow run "nightly build"                     # now (skips when the pick is the same commit as last night's)
 #   gh workflow run "nightly build" -f force=true       # build and publish even if unchanged
 #   gh workflow run "nightly build" -f dry_run=true     # build and sign with a throwaway key, publish nothing
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  schedule:
-    - cron: '17 20 * * *'  # 20:17 UTC: after the day's waves, before the 03:07 Paris parity audit takes the Mac mini
   workflow_dispatch:
-    inputs:
-      force:
-        description: Build and publish even if tonight's pick is the commit already published
-        type: boolean
-        default: false
-      dry_run:
-        description: Build and sign with a throwaway key, publish nothing
-        type: boolean
-        default: false
-      issue:
-        description: The issue or pull request whose `/nightly` comment asked for this build (answered there)
-        type: string
-        default: ''
-      request:
-        description: The command's id, in the run's name so it can link the run
-        type: string
-        default: ''
-      prs:
-        description: A dry run's own set, `2640@<head> 2642@<head>` (the saved set stays)
-        type: string
-        default: ''
-      base:
-        description: The commit of main to build on (default main's newest with green checks and parity-main)
-        type: string
-        default: ''
-      urgent:
-        description: Past the day's cap of 12 builds (the train, for a release-now pull request or a forced run)
-        type: boolean
-        default: false
 permissions:
   contents: read
 concurrency:
@@ -74,6 +44,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   pick:
+    if: github.repository == 'horizon-rust/horizon'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

@@ -20,37 +20,9 @@ name: launcher
 #   gh workflow run launcher --ref <branch>                    # dry run: builds everything, publishes nothing
 #   gh workflow run launcher --ref main -f dry_run=false -f force=true
 
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  push:
-    branches: [main, launcher, 'launcher-*']
-    paths:
-      # Everything the launcher is built and packaged from, as tools/release_train.py's LAUNCHER_PATHS.
-      - 'launcher/**'
-      - 'crates/horizon-bench/**'
-      - 'crates/horizon-friends/**'
-      - 'crates/horizon-mcp/**'
-      - 'crates/horizon-mods/**'
-      - 'crates/horizon-port-pack/**'
-      - 'crates/horizon-prepare/**'
-      - 'crates/horizon-release-sign/**'
-      - 'crates/horizon-telemetry/**'
-      - 'crates/horizon-theme/**'
-      - 'packaging/linux/**'
-      - 'packaging/icons/**'
-      - '.github/workflows/launcher.yml'
-  schedule:
-    - cron: '7-59/10 * * * *'
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: Build everything and write the notes, but publish nothing
-        type: boolean
-        default: true
-      force:
-        description: Release even without launcher changes, before merges settle or while paused
-        type: boolean
-        default: false
-
 permissions:
   contents: read
 
@@ -64,6 +36,7 @@ env:
 
 jobs:
   decide:
+    if: github.repository == 'horizon-rust/horizon'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:

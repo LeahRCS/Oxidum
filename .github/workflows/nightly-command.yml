@@ -10,15 +10,15 @@ name: nightly command
 #   a shell line.
 # - It never checks out, fetches or merges a pull request: it reads their file lists through the API. The merge
 #   happens in nightly-build.yml's `pick`, with git objects only; their code runs in its `build`, without secrets.
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  issue_comment:
-    types: [created]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   command:
     # Every other comment skips here, before a runner starts.
-    if: startsWith(github.event.comment.body, '/nightly') && github.event.comment.user.type != 'Bot'
+    if: github.repository == 'horizon-rust/horizon' && startsWith(github.event.comment.body, '/nightly') && github.event.comment.user.type != 'Bot'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

@@ -4,9 +4,8 @@ name: parity-main
 # newest), which checks every merge since main's last green parity-main (tools/parity_main.py base). On a failure it
 # bisects the failing harnesses over those merges and comments on the pull request that broke them. Releases ship
 # only a commit whose parity-main passed (tools/release_train.py), so nothing a harness catches reaches players.
+# Oxidum keeps this upstream workflow for source compatibility, but never runs it automatically.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,13 +15,14 @@ permissions:
   actions: read
 concurrency:
   group: parity-main
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.repository != 'horizon-rust/horizon' }}
 env:
   # Test runs never reach the telemetry server: no live-count ping, no uploads (docs/telemetry.md).
   HORIZON_TELEMETRY_URL: "off"
 
 jobs:
   parity-main:
+    if: github.repository == 'horizon-rust/horizon'
     # A Mac mini runner of its own (ludovics-mac-mini-2 holds only this label since 2026-10-26): behind PR parity jobs
     # this run waited 2 h while every merge replaced the pending one, and on the release runner a release then waited
     # behind the next run. PR parity jobs have ludovics-mac-mini and playhorizon. Not playhorizon: its 4 CPUs

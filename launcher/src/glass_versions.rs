@@ -143,7 +143,7 @@ impl Launcher {
                 "Imported builds",
                 build_import::is_imported,
                 Some(tr(
-                    "Unsigned: you picked these programs yourself, and Horizon can't \
+                    "Unsigned: you picked these programs yourself, and Oxidum can't \
                     check where they came from. Updates never replace them.",
                 )),
                 on_disk,
