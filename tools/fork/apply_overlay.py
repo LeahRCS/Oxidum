@@ -229,6 +229,7 @@ for old, new in [
     ("/// A dark violet from the accent: what the plates are tinted with.", "/// A dark charcoal/copper mix from the accent: what the plates are tinted with."),
     ("/// `--base: color-mix(in oklab, accent 10%, #14111d)`, and `.hzl-glass`'s background", "/// `--base: color-mix(in oklab, accent 10%, #181a22)`, and `.hzl-glass`'s background"),
     ("let base = mix_oklab(accent, 0x14111d, 0.10);", "let base = mix_oklab(accent, 0x181a22, 0.10);"),
+    ("[0.772018, 0.0291158, -0.12693]", "[0.7793512, 0.0488354, 0.0508413]"),
     ("close(g.accent_soft, 0xa9a9ff)", "close(g.accent_soft, 0xdeaa91)"),
     ('assert!(close(g.base, 0x1b1830), "base {:06x}", g.base);', 'assert!(close(g.base, 0x272125), "base {:06x}", g.base);'),
     ('assert!(close(g.plate, 0x4e4c5f), "plate {:06x}", g.plate);', 'assert!(close(g.plate, 0x585356), "plate {:06x}", g.plate);'),
