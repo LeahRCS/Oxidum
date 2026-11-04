@@ -245,6 +245,361 @@ for old, new in [
     text = text.replace(old, new)
 p.write_text(text)
 
+# GPU selectors live in fast-moving launcher UI files. Apply them semantically instead of
+# carrying fragile line-based hunks in gpu-selection.patch.
+p = Path("launcher/src/glass_settings.rs")
+text = p.read_text()
+if "fn launcher_gpu_row" not in text:
+    anchor = "    /// The Game card's Native mods row."
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: glass Settings GPU anchor changed upstream")
+    rows = r'''    /// Linux: the physical GPU the launcher window itself uses on its next start.
+    pub(super) fn launcher_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
+        if !cfg!(target_os = "linux") {
+            return None;
+        }
+        let gpus = horizon_launcher::gpu::list();
+        if gpus.is_empty() {
+            return None;
+        }
+        let t = self.theme;
+        let current = self.settings.launcher_gpu.clone();
+        let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
+        choices = choices.child(
+            button(
+                "launcher-gpu-system",
+                "Automatic / system",
+                if current.is_none() {
+                    Kind::Primary
+                } else {
+                    Kind::Secondary
+                },
+                &t,
+            )
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.settings.launcher_gpu = None;
+                this.save_settings();
+                cx.notify();
+            })),
+        );
+        for (index, gpu) in gpus.into_iter().enumerate() {
+            let id = gpu.id.clone();
+            let selected = current.as_deref() == Some(id.as_str());
+            let label = match gpu.boot_vga {
+                true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
+                false => gpu.name.clone(),
+            };
+            choices = choices.child(
+                button(
+                    SharedString::from(format!("launcher-gpu-{index}")),
+                    label,
+                    if selected {
+                        Kind::Primary
+                    } else {
+                        Kind::Secondary
+                    },
+                    &t,
+                )
+                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                    this.settings.launcher_gpu = Some(id.clone());
+                    this.save_settings();
+                    cx.notify();
+                })),
+            );
+        }
+        Some(index_row(
+            0,
+            tr("Launcher graphics card"),
+            note("Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens."),
+            Some(choices.into_any_element()),
+            &t,
+        ))
+    }
+
+    /// Linux: the physical GPU Rust Minecraft instances use unless an instance overrides it.
+    pub(super) fn rust_game_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
+        if !cfg!(target_os = "linux") {
+            return None;
+        }
+        let gpus = horizon_launcher::gpu::list();
+        if gpus.is_empty() {
+            return None;
+        }
+        let t = self.theme;
+        let current = self.settings.rust_game_gpu.clone();
+        let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
+        choices = choices.child(
+            button(
+                "rust-game-gpu-system",
+                "Automatic / system",
+                if current.is_none() {
+                    Kind::Primary
+                } else {
+                    Kind::Secondary
+                },
+                &t,
+            )
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.settings.rust_game_gpu = None;
+                this.save_settings();
+                cx.notify();
+            })),
+        );
+        for (index, gpu) in gpus.into_iter().enumerate() {
+            let id = gpu.id.clone();
+            let selected = current.as_deref() == Some(id.as_str());
+            let label = match gpu.boot_vga {
+                true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
+                false => gpu.name.clone(),
+            };
+            choices = choices.child(
+                button(
+                    SharedString::from(format!("rust-game-gpu-{index}")),
+                    label,
+                    if selected {
+                        Kind::Primary
+                    } else {
+                        Kind::Secondary
+                    },
+                    &t,
+                )
+                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                    this.settings.rust_game_gpu = Some(id.clone());
+                    this.save_settings();
+                    cx.notify();
+                })),
+            );
+        }
+        Some(index_row(
+            0,
+            tr("Rust Minecraft graphics card"),
+            note("Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings."),
+            Some(choices.into_any_element()),
+            &t,
+        ))
+    }
+
+'''
+    text = text.replace(anchor, rows + anchor, 1)
+
+if ".children(self.launcher_gpu_row(cx))" not in text:
+    anchor = "            .child(self.glass_accent_row(cx))\n"
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: launcher GPU row placement changed upstream")
+    text = text.replace(anchor, anchor + "            .children(self.launcher_gpu_row(cx))\n", 1)
+
+if ".children(self.rust_game_gpu_row(cx))" not in text:
+    anchor = "        let game = card()\n"
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: game Settings card changed upstream")
+    text = text.replace(anchor, anchor + "            .children(self.rust_game_gpu_row(cx))\n", 1)
+p.write_text(text)
+
+p = Path("launcher/src/launch_page.rs")
+text = p.read_text()
+if "fn pick_instance_gpu" not in text:
+    anchor = "    /// The instance the memory row sets:"
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: instance GPU save anchor changed upstream")
+    helper = r'''    /// Picks a physical GPU for a Rust instance. None means inherit the Settings default.
+    /// Choosing through the new list also retires the old boolean dedicated-GPU switch for it.
+    fn pick_instance_gpu(&mut self, gpu: Option<String>) {
+        let Some(panel) = &mut self.launch else {
+            return;
+        };
+        let saved = instances::edit(&panel.instance, |m| {
+            m.launch.gpu = gpu.clone();
+            m.launch.dedicated_gpu = false;
+        });
+        panel.saved = Some(saved.map(|i| i.launch.summary()));
+        self.reload_instances();
+    }
+
+'''
+    text = text.replace(anchor, helper + anchor, 1)
+
+start = text.find("    /// The Linux switches this computer can use:")
+end = text.find("    /// The panel under the Instance row", start)
+if start < 0 or end < 0:
+    raise SystemExit("Oxidum overlay: Linux launch switches changed upstream")
+linux = r'''    /// Linux launch helpers: GameMode and MangoHud, plus a physical GPU picker for Rust
+    /// instances. Java instances keep the older dedicated-GPU switch unchanged.
+    fn linux_switches(&self, cx: &mut Context<Self>) -> Option<Div> {
+        let t = self.theme;
+        let found = self.launch.as_ref()?.found;
+        let instance = self.selected_instance()?.clone();
+        let now = instance.launch.clone();
+        let mut list = div().flex().flex_col().gap(px(10.));
+
+        for (toggle, shown, on, label, about) in [
+            (
+                Toggle::GameMode,
+                found.gamemode,
+                now.gamemode,
+                "GameMode",
+                "Feral's gamemoderun: CPU and scheduler tuned while you play.",
+            ),
+            (
+                Toggle::MangoHud,
+                found.mangohud,
+                now.mangohud,
+                "MangoHud",
+                "The frame time, CPU and GPU overlay.",
+            ),
+        ] {
+            if !shown {
+                continue;
+            }
+            list = list.child(
+                div()
+                    .id(SharedString::from(format!("launch-switch-{label}")))
+                    .flex()
+                    .items_center()
+                    .gap(px(10.))
+                    .cursor_pointer()
+                    .child(switch(
+                        SharedString::from(format!("launch-switch-{label}-s")),
+                        on,
+                        &t,
+                    ))
+                    .child(text(theme::LABEL).text_color(t.ink_soft).child(tr(label)))
+                    .child(text(theme::CAPTION).text_color(t.muted).child(tr(about)))
+                    .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                        this.flip(toggle);
+                        cx.notify();
+                    })),
+            );
+        }
+
+        if instance.java.is_some() {
+            if found.two_gpus {
+                let gpu_about = match found.nvidia {
+                    true => "NVIDIA render offload for this Java instance.",
+                    false => "Mesa PRIME render offload for this Java instance.",
+                };
+                list = list.child(
+                    div()
+                        .id("launch-switch-Dedicated-gpu")
+                        .flex()
+                        .items_center()
+                        .gap(px(10.))
+                        .cursor_pointer()
+                        .child(switch(
+                            "launch-switch-Dedicated-gpu-s",
+                            now.dedicated_gpu,
+                            &t,
+                        ))
+                        .child(
+                            text(theme::LABEL)
+                                .text_color(t.ink_soft)
+                                .child(tr("Dedicated graphics card")),
+                        )
+                        .child(
+                            text(theme::CAPTION)
+                                .text_color(t.muted)
+                                .child(tr(gpu_about)),
+                        )
+                        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                            this.flip(Toggle::Gpu);
+                            cx.notify();
+                        })),
+                );
+            }
+        } else {
+            let gpus = horizon_launcher::gpu::list();
+            if gpus.len() > 1 {
+                let legacy = if now.dedicated_gpu {
+                    gpus.iter()
+                        .find(|gpu| !gpu.boot_vga)
+                        .map(|gpu| gpu.id.clone())
+                } else {
+                    None
+                };
+                let current = now.gpu.clone().or(legacy);
+                let default_label = self.settings.rust_game_gpu.as_deref().map_or_else(
+                    || tr("Use Settings default (automatic)").to_string(),
+                    |id| {
+                        let name = horizon_launcher::gpu::name(id);
+                        trf("Use Settings default ({gpu})", &[("gpu", &name)])
+                    },
+                );
+                let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
+                choices = choices.child(
+                    button(
+                        "instance-gpu-system",
+                        default_label,
+                        if current.is_none() {
+                            Kind::Primary
+                        } else {
+                            Kind::Secondary
+                        },
+                        &t,
+                    )
+                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                        this.pick_instance_gpu(None);
+                        cx.notify();
+                    })),
+                );
+                for (index, gpu) in gpus.into_iter().enumerate() {
+                    let id = gpu.id.clone();
+                    let selected = current.as_deref() == Some(id.as_str());
+                    let label = match gpu.boot_vga {
+                        true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
+                        false => gpu.name.clone(),
+                    };
+                    choices = choices.child(
+                        button(
+                            SharedString::from(format!("instance-gpu-{index}")),
+                            label,
+                            if selected {
+                                Kind::Primary
+                            } else {
+                                Kind::Secondary
+                            },
+                            &t,
+                        )
+                        .on_click(cx.listener(
+                            move |this, _: &ClickEvent, _, cx| {
+                                this.pick_instance_gpu(Some(id.clone()));
+                                cx.notify();
+                            },
+                        )),
+                    );
+                }
+                list = list.child(
+                    div()
+                        .flex()
+                        .flex_col()
+                        .gap(px(8.))
+                        .child(caps(tr("Graphics card")).text_color(t.muted))
+                        .child(choices)
+                        .child(
+                            text(theme::CAPTION)
+                                .text_color(t.muted)
+                                .child(tr("Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.")),
+                        ),
+                );
+            }
+        }
+
+        let any = found.gamemode
+            || found.mangohud
+            || (instance.java.is_some() && found.two_gpus)
+            || (instance.java.is_none() && horizon_launcher::gpu::list().len() > 1);
+        any.then(|| {
+            div()
+                .flex()
+                .flex_col()
+                .gap(px(8.))
+                .child(caps(tr("On this computer")).text_color(t.muted))
+                .child(list)
+        })
+    }
+
+'''
+text = text[:start] + linux + text[end:]
+p.write_text(text)
+
 # Oxidum's default colour language: copper action/focus, patina success.
 p = Path("crates/horizon-theme/src/night.rs")
 text = p.read_text()
