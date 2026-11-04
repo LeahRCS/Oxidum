@@ -711,6 +711,235 @@ edition = r'''    /// The edition tabs switch between Rust Edition and Java Edit
 text = text[:start] + edition + text[end:]
 p.write_text(text)
 
+# Java Edition can launch locally/offline from already-present files without importing secrets.
+p = Path("launcher/src/account.rs")
+text = p.read_text()
+if "pub fn java_local_player()" not in text:
+    needle = "pub fn java_player() -> Result<crate::java_launch::Player, String> {"
+    if needle not in text:
+        raise SystemExit("Oxidum overlay: java_player changed upstream")
+    local_player = r'''/// A local/offline Java player for an already-installed game.
+pub fn java_local_player() -> crate::java_launch::Player {
+    use sha1::{Digest, Sha1};
+
+    let accounts = Accounts::load();
+    let name = accounts
+        .offline_selected
+        .clone()
+        .or_else(|| accounts.selected().map(|a| a.name.clone()))
+        .or_else(|| accounts.offline.first().cloned())
+        .unwrap_or_else(|| "Player".into());
+    let digest = Sha1::digest(format!("OxidumOffline:{name}").as_bytes());
+    let uuid = digest[..16]
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    crate::java_launch::Player {
+        name,
+        uuid,
+        token: "0".into(),
+        xuid: String::new(),
+    }
+}
+
+'''
+    text = text.replace(needle, local_player + needle, 1)
+p.write_text(text)
+
+p = Path("launcher/src/backend.rs")
+text = p.read_text()
+if "fn prism_java_roots()" not in text:
+    doc = "/// The command that starts a Java instance's Minecraft, for an account that owns the game: its"
+    at = text.find(doc)
+    if at < 0:
+        raise SystemExit("Oxidum overlay: java_game documentation changed upstream")
+    helpers = r'''/// Roots from Prism-family launchers whose public game files Oxidum can reuse.
+fn prism_java_roots() -> Vec<PathBuf> {
+    let Some(home) = std::env::var_os("HOME").map(PathBuf::from) else {
+        return Vec::new();
+    };
+    let data = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home.join(".local/share"));
+    [
+        data.join("HalkyLauncher"),
+        data.join("FreesmLauncher"),
+        data.join("PrismLauncher"),
+        home.join(".var/app/org.HalkyLauncher.HalkyLauncher/data/HalkyLauncher"),
+        home.join(".var/app/org.freesmlauncher.FreesmLauncher/data/FreesmLauncher"),
+        home.join(".var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher"),
+    ]
+    .into_iter()
+    .filter(|path| path.is_dir())
+    .collect()
+}
+
+fn reusable_java_root(root: &Path, minecraft: &str, start: &str) -> bool {
+    let Ok(game) = mojang::relative(minecraft) else {
+        return false;
+    };
+    let Ok(start) = mojang::relative(start) else {
+        return false;
+    };
+    let base = root
+        .join("versions")
+        .join(&game)
+        .join(format!("{game}.json"));
+    let profile = root
+        .join("versions")
+        .join(&start)
+        .join(format!("{start}.json"));
+    root.join("assets").is_dir()
+        && root.join("libraries").is_dir()
+        && base.is_file()
+        && profile.is_file()
+}
+
+fn java_minecraft_root(minecraft: &str, start: &str) -> (PathBuf, bool) {
+    let own = data_dir().join("minecraft");
+    if reusable_java_root(&own, minecraft, start) {
+        return (own, true);
+    }
+    if let Some(root) = prism_java_roots()
+        .into_iter()
+        .find(|root| reusable_java_root(root, minecraft, start))
+    {
+        return (root, true);
+    }
+    (own, false)
+}
+
+'''
+    text = text[:at] + helpers + text[at:]
+
+start = text.find("pub fn java_game(")
+end = text.find("\n/// What [", start)
+if start < 0 or end < 0:
+    raise SystemExit("Oxidum overlay: java_game changed upstream")
+java_game = r'''pub fn java_game(
+    instance: &crate::instances::Instance,
+    server: Option<&str>,
+    log: &dyn Fn(String),
+) -> Result<Command, String> {
+    let game = instance.java.as_ref().ok_or_else(|| {
+        format!(
+            "{} plays Oxidum's Rust Edition, not Minecraft: Java Edition",
+            instance.name
+        )
+    })?;
+
+    let mut start = game.minecraft.clone();
+    if let Some(loader) = &game.loader {
+        start = loader.kind.profile_id(&loader.version, &game.minecraft);
+    }
+
+    let (mut minecraft, mut local_files) = java_minecraft_root(&game.minecraft, &start);
+    let id = mojang::relative(&game.minecraft)?;
+    let downloaded = |root: &Path, id: &str| -> Result<PathBuf, String> {
+        Ok(root
+            .join("versions")
+            .join(mojang::relative(id)?)
+            .join(".downloaded"))
+    };
+
+    if !local_files {
+        let marker = downloaded(&minecraft, &game.minecraft)?;
+        if !marker.is_file() {
+            let listed = crate::minecraft_versions::load()?;
+            let version = listed.find(&game.minecraft)?;
+            download_version_for_owner(&version.id, &version.sha1, log)?;
+            fs::write(&marker, "").map_err(|e| format!("{}: {e}", marker.display()))?;
+        }
+        local_files = true;
+    } else if minecraft != data_dir().join("minecraft") {
+        log(format!(
+            "Reusing Minecraft {} files from {}",
+            game.minecraft,
+            minecraft.display()
+        ));
+    }
+
+    if let Some(loader) = &game.loader {
+        let profile = minecraft
+            .join("versions")
+            .join(mojang::relative(&start)?)
+            .join(format!("{start}.json"));
+        if !profile.is_file() {
+            let own = data_dir().join("minecraft");
+            if minecraft != own {
+                minecraft = own;
+                let base_marker = downloaded(&minecraft, &game.minecraft)?;
+                if !base_marker.is_file() {
+                    let listed = crate::minecraft_versions::load()?;
+                    let version = listed.find(&game.minecraft)?;
+                    download_version_for_owner(&version.id, &version.sha1, log)?;
+                    fs::write(&base_marker, "")
+                        .map_err(|e| format!("{}: {e}", base_marker.display()))?;
+                }
+            }
+            start = crate::loaders::install(loader, &game.minecraft, &minecraft, &get_bytes, log)?;
+            fs::write(downloaded(&minecraft, &start)?, "").map_err(|e| e.to_string())?;
+        }
+    }
+
+    let natives = minecraft.join("natives").join(&id);
+    let file = minecraft
+        .join("versions")
+        .join(mojang::relative(&start)?)
+        .join(format!("{start}.json"));
+    let version = crate::java_launch::resolve(crate::java_launch::read(&file)?, &minecraft)?;
+    let need = crate::java::Need::of(&version);
+    let found = crate::java::pick(
+        &need,
+        game.home.as_deref(),
+        &crate::java::mojang_runtimes(&crate::java::runtimes_dir()),
+        &crate::java::installed(),
+    )?;
+    let runtime = match found {
+        Some(runtime) => runtime,
+        None => {
+            log(format!("Downloading Java {} from Mojang", need.major));
+            crate::java::install(&need, log)?
+        }
+    };
+
+    let player = if OFFLINE_PLAY && local_files {
+        account::java_local_player()
+    } else {
+        account::java_player()?
+    };
+    let jvm_args: Vec<String> = game.jvm_args.split_whitespace().map(String::from).collect();
+    fs::create_dir_all(&instance.home).map_err(|e| format!("{}: {e}", instance.home.display()))?;
+    crate::java_launch::command(
+        &version,
+        &crate::java_launch::Launch {
+            minecraft: &minecraft,
+            game_dir: &instance.home,
+            natives: &natives,
+            java: &runtime.java(),
+            memory_mb: game
+                .memory_mb
+                .unwrap_or(crate::instances::DEFAULT_MEMORY_MB),
+            jvm_args: &jvm_args,
+            player: &player,
+            os: crate::java_launch::os_name(),
+            window: game.window,
+            server,
+        },
+    )
+}
+'''
+text = text[:start] + java_game + text[end:]
+p.write_text(text)
+
+p = Path("launcher/src/main.rs")
+text = p.read_text()
+text = text.replace(
+    "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.",
+    "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.",
+)
+p.write_text(text)
+
 # Oxidum's default colour language: copper action/focus, patina success.
 p = Path("crates/horizon-theme/src/night.rs")
 text = p.read_text()
