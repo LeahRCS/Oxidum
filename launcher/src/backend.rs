@@ -1577,21 +1577,21 @@ fn prism_java_roots() -> Vec<PathBuf> {
 
 /// Whether a launcher root already has the shared files a Java instance needs. Prism-family
 /// launchers use compatible assets, libraries and versions roots.
-fn reusable_java_root(root: &Path, minecraft: &str, start: &str) -> bool {
+fn reusable_java_root(root: &Path, minecraft: &str, start_id: &str) -> bool {
     let Ok(game) = mojang::relative(minecraft) else {
         return false;
     };
-    let Ok(start) = mojang::relative(start) else {
+    let Ok(start) = mojang::relative(start_id) else {
         return false;
     };
     let base = root
         .join("versions")
         .join(&game)
-        .join(format!("{game}.json"));
+        .join(format!("{minecraft}.json"));
     let profile = root
         .join("versions")
         .join(&start)
-        .join(format!("{start}.json"));
+        .join(format!("{start_id}.json"));
     root.join("assets").is_dir()
         && root.join("libraries").is_dir()
         && base.is_file()
