@@ -488,6 +488,16 @@ impl Launcher {
         })
         .detach();
         let mut settings = Settings::load();
+        // Builds before Oxidum's identity pass persisted Horizon's violet even when the player
+        // never picked a colour. Migrate that legacy default once; explicit choices after this
+        // version are left alone.
+        if settings.brand_palette_version == 0 {
+            if settings.accent == horizon_launcher::themes::Accent::VIOLET {
+                settings.accent = horizon_launcher::themes::Accent::OXIDUM;
+            }
+            settings.brand_palette_version = 1;
+            let _ = settings.save();
+        }
         // Horizon-free: allow playing without a Microsoft account that owns the game.
         settings.dev_offline = backend::OFFLINE_PLAY;
         i18n::set(settings.language());

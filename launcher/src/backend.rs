@@ -3485,9 +3485,12 @@ pub struct Settings {
     /// override it in their launch panel. None leaves adapter choice automatic/system-managed.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rust_game_gpu: Option<String>,
-    /// The accent colour on top of the appearance (`themes::Accent`). Horizon's violet by default.
+    /// The accent colour on top of the appearance. Oxidum's copper is the default.
     #[serde(default)]
     pub accent: crate::themes::Accent,
+    /// One-time visual migration: 0 predates Oxidum's copper/patina identity; 1 has migrated.
+    #[serde(default)]
+    pub brand_palette_version: u8,
     /// Home's background: a picture the player picked, kept in the data folder under this name
     /// (`themes::keep_background`). Unset shows Horizon's landscape.
     #[serde(default, skip_serializing_if = "Option::is_none")]

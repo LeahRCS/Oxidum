@@ -22,22 +22,22 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 const SKY: [u32; 15] = [
-    0x0a0919, 0x0f0c28, 0x151136, 0x1d1444, 0x281850, 0x361b5b, 0x481e66, 0x5d236e, 0x752873,
-    0x902f76, 0xab3a75, 0xc64a71, 0xde5f6a, 0xef7c63, 0xf89d62,
+    0x0b0d10, 0x101318, 0x151a1d, 0x1b2323, 0x222d29, 0x2a3830, 0x34443a, 0x405043, 0x4e5c49,
+    0x5d684d, 0x6f7350, 0x827a50, 0x9a7f4d, 0xbf874f, 0xeb9655,
 ];
 const SKY_STEPS: usize = SKY.len() - 4;
 const SUN: [u32; 7] = [
-    0xfff5d2, 0xffe4a0, 0xffca78, 0xffac5f, 0xff8c58, 0xfb6c62, 0xee5277,
+    0xffe3bd, 0xf8c88d, 0xebaa68, 0xeb9655, 0xd47c3d, 0xb85b29, 0x8a684d,
 ];
-const HALO: u32 = 0xff8d6a;
-const FOG: u32 = 0xe0697c;
-const RIM: u32 = 0xffb27c;
-const CLOUD_HIGH: u32 = 0x5f2c7c;
-const CLOUD_LOW: u32 = 0xc95985;
-const CLOUD_TOP: u32 = 0xf3a6bd;
-const FIREFLY: u32 = 0xffd98c;
-const STAR_COOL: u32 = 0xd2c8ff;
-const STAR_WARM: u32 = 0xfff3e4;
+const HALO: u32 = 0xeb9655;
+const FOG: u32 = 0x55ad93;
+const RIM: u32 = 0x71866b;
+const CLOUD_HIGH: u32 = 0x26352f;
+const CLOUD_LOW: u32 = 0x447564;
+const CLOUD_TOP: u32 = 0x91b9aa;
+const FIREFLY: u32 = 0xeb9655;
+const STAR_COOL: u32 = 0xc9ddd5;
+const STAR_WARM: u32 = 0xffe3bd;
 const MARGIN: i32 = 20;
 /// The mockup's sun: right of centre, a little bigger and higher (`wideSun`), on wide windows.
 const WIDE_SUN: (f64, f64, f64) = (0.72, 1.1, 0.1);
@@ -361,8 +361,8 @@ impl Model {
                 170.,
                 0.2,
                 0.25,
-                0x3f1f5c,
-                0xc45a7f,
+                0x34443a,
+                0x71866b,
                 1.,
             ),
             ridge(
@@ -373,8 +373,8 @@ impl Model {
                 130.,
                 0.35,
                 0.55,
-                0x25123e,
-                0x7a3068,
+                0x202b28,
+                0x4f796a,
                 0.8,
             ),
             ridge(
@@ -385,8 +385,8 @@ impl Model {
                 100.,
                 0.5,
                 1.,
-                0x100a1f,
-                0x2c1640,
+                0x101716,
+                0x2e4d43,
                 0.6,
             ),
         ];
