@@ -403,7 +403,6 @@
   "Check for updates": "Periksa pembaruan",
   "Modrinth's modpack format: resource packs from Modrinth are listed by their download, the rest is carried in it.": "Format modpack Modrinth: paket sumber daya dari Modrinth dicantumkan berdasarkan unduhannya, sisanya disertakan di dalamnya.",
   "Exporting…": "Mengekspor…",
-  "Horizon and its icon are in your desktop's menu.": "Horizon dan ikonnnya ada di menu desktop Anda.",
   "{name}'s shortcut is in the trash.": "Pintasan {name} berada di tempat sampah.",
   "Waiting for the server's log…": "Menunggu log server…",
   "Stop": "Berhenti",
@@ -1032,7 +1031,6 @@
   "Sign in with the account that owns Minecraft: Java Edition. Your name and skin come along to online servers, like in other launchers.": "Masuk dengan akun yang memiliki Minecraft: Java Edition. Nama dan skin-mu ikut ke server online, seperti di launcher lain.",
   "Microsoft's own page opens in your browser. Horizon never sees your password.": "Halaman Microsoft sendiri terbuka di browser-mu. Horizon tidak pernah melihat kata sandimu.",
   "Colours the buttons, the switches and the sky. Pick one, or type any hex colour.": "Mewarnai tombol, sakelar, dan langit. Pilih satu, atau ketik warna hex apa pun.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
   "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Pilih GPU khusus untuk instans Minecraft Rust ini, atau gunakan default dari Pengaturan. Oxidum mengatur PRIME secara otomatis.",
   "Graphics card": "Kartu grafis",
   "Launcher graphics card": "Kartu grafis launcher",
@@ -1043,5 +1041,7 @@
   "{gpu} (system default)": "{gpu} (default sistem)",
   "Automatic / system": "Otomatis / sistem",
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Pilih GPU yang merender Oxidum. Otomatis mempertahankan cara Oxidum dijalankan; kartu tertentu diterapkan saat Oxidum dibuka berikutnya.",
-  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU default untuk instans Minecraft Rust. Setiap instans dapat menggantinya di pengaturan peluncurannya."
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU default untuk instans Minecraft Rust. Setiap instans dapat menggantinya di pengaturan peluncurannya.",
+  "Oxidum and its icon are in your desktop's menu.": "Oxidum dan ikonnnya ada di menu desktop Anda.",
+  "Oxidum purple by default. Every colour keeps text as easy to read.": "Oxidum purple by default. Every colour keeps text as easy to read."
 }

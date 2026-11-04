@@ -403,7 +403,6 @@
   "Check for updates": "التحقق من وجود تحديثات",
   "Modrinth's modpack format: resource packs from Modrinth are listed by their download, the rest is carried in it.": "تنسيق حزمة تعديلات Modrinth: يتم إدراج حزم الموارد من Modrinth حسب روابط تنزيلها، ويتم تضمين الباقي.",
   "Exporting…": "جاري التصدير…",
-  "Horizon and its icon are in your desktop's menu.": "هورايزون وأيقونته موجودان في قائمة سطح المكتب.",
   "{name}'s shortcut is in the trash.": "اختصار {name} موجود في سلة المهملات.",
   "Waiting for the server's log…": "جاري انتظار سجل الخادم…",
   "Stop": "إيقاف",
@@ -1032,7 +1031,6 @@
   "Sign in with the account that owns Minecraft: Java Edition. Your name and skin come along to online servers, like in other launchers.": "سجّل الدخول بالحساب الذي يملك Minecraft: Java Edition. يرافقك اسمك ومظهرك إلى الخوادم عبر الإنترنت، كما في المشغلات الأخرى.",
   "Microsoft's own page opens in your browser. Horizon never sees your password.": "تُفتح صفحة Microsoft نفسها في متصفحك. لا يرى Horizon كلمة مرورك أبدًا.",
   "Colours the buttons, the switches and the sky. Pick one, or type any hex colour.": "يلوّن الأزرار والمفاتيح والسماء. اختر لونًا، أو اكتب أي لون بصيغة hex.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
   "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "اختر بطاقة رسوميات بديلة لهذه النسخة من Minecraft المكتوبة بـ Rust، أو استخدم الإعداد الافتراضي من الإعدادات. يضبط Oxidum تقنية PRIME تلقائيًا.",
   "Graphics card": "بطاقة الرسوميات",
   "Launcher graphics card": "بطاقة رسوميات المشغّل",
@@ -1043,5 +1041,7 @@
   "{gpu} (system default)": "{gpu} (إعداد النظام الافتراضي)",
   "Automatic / system": "تلقائي / النظام",
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "اختر بطاقة الرسوميات التي تعرض Oxidum. يحافظ الوضع التلقائي على طريقة تشغيل Oxidum كما هي؛ ويتم تطبيق بطاقة محددة عند فتح Oxidum في المرة التالية.",
-  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "بطاقة الرسوميات الافتراضية لنسخ Minecraft المكتوبة بـ Rust. يمكن لكل نسخة تجاوز هذا الإعداد من إعدادات التشغيل الخاصة بها."
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "بطاقة الرسوميات الافتراضية لنسخ Minecraft المكتوبة بـ Rust. يمكن لكل نسخة تجاوز هذا الإعداد من إعدادات التشغيل الخاصة بها.",
+  "Oxidum and its icon are in your desktop's menu.": "هورايزون وأيقونته موجودان في قائمة سطح المكتب.",
+  "Oxidum purple by default. Every colour keeps text as easy to read.": "Oxidum purple by default. Every colour keeps text as easy to read."
 }
