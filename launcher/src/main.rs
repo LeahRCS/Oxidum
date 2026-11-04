@@ -3200,7 +3200,7 @@ impl Launcher {
                 Some(
                     div()
                         .child(trf(
-                            "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.",
+                            "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.",
                             &[("version", &java.minecraft)],
                         ))
                         .into_any_element(),
@@ -3230,7 +3230,7 @@ impl Launcher {
         };
         {
             // The top bar shows who plays; a row only when there is something to do about it:
-            // no account that owns the game (Play needs one), or offline.
+            // no account that owns the game (downloads and authenticated online play need one), or offline.
             if self.owner_shown() == Some(false) {
                 rows = rows.child(index_row(
                     5,
