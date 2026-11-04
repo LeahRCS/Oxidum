@@ -1043,5 +1043,5 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "اختر بطاقة الرسوميات التي تعرض Oxidum. يحافظ الوضع التلقائي على طريقة تشغيل Oxidum كما هي؛ ويتم تطبيق بطاقة محددة عند فتح Oxidum في المرة التالية.",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "بطاقة الرسوميات الافتراضية لنسخ Minecraft المكتوبة بـ Rust. يمكن لكل نسخة تجاوز هذا الإعداد من إعدادات التشغيل الخاصة بها.",
   "Oxidum and its icon are in your desktop's menu.": "هورايزون وأيقونته موجودان في قائمة سطح المكتب.",
-  "Oxidum purple by default. Every colour keeps text as easy to read.": "Oxidum purple by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
 }

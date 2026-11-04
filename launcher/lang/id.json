@@ -1043,5 +1043,5 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Pilih GPU yang merender Oxidum. Otomatis mempertahankan cara Oxidum dijalankan; kartu tertentu diterapkan saat Oxidum dibuka berikutnya.",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU default untuk instans Minecraft Rust. Setiap instans dapat menggantinya di pengaturan peluncurannya.",
   "Oxidum and its icon are in your desktop's menu.": "Oxidum dan ikonnnya ada di menu desktop Anda.",
-  "Oxidum purple by default. Every colour keeps text as easy to read.": "Oxidum purple by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
 }

@@ -1043,5 +1043,5 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Oxidum の描画に使う GPU を選択します。自動では Oxidum の起動方法をそのまま使用し、特定のカードを選ぶと次回 Oxidum 起動時に適用されます。",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft インスタンスの既定 GPU です。各インスタンスの起動設定で上書きできます。",
   "Oxidum and its icon are in your desktop's menu.": "デスクトップのメニューに Oxidum とアイコンを追加します。",
-  "Oxidum purple by default. Every colour keeps text as easy to read.": "Oxidum purple by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
 }
