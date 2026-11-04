@@ -403,7 +403,6 @@
   "Check for updates": "Перевірити оновлення",
   "Modrinth's modpack format: resource packs from Modrinth are listed by their download, the rest is carried in it.": "Формат модпака Modrinth: набори ресурсів із Modrinth вказуються посиланнями на завантаження, а решта пакується всередину.",
   "Exporting…": "Експортування…",
-  "Horizon and its icon are in your desktop's menu.": "Horizon і його значок є в меню застосунків вашої системи.",
   "{name}'s shortcut is in the trash.": "Ярлик {name} переміщено до кошика.",
   "Waiting for the server's log…": "Очікування журналу сервера…",
   "Stop": "Зупинити",
@@ -1032,7 +1031,6 @@
   "Sign in with the account that owns Minecraft: Java Edition. Your name and skin come along to online servers, like in other launchers.": "Увійдіть в обліковий запис, якому належить Minecraft: Java Edition. Ім'я та скін будуть з вами на онлайн-серверах, як в інших лаунчерах.",
   "Microsoft's own page opens in your browser. Horizon never sees your password.": "Сторінка Microsoft відкривається у вашому браузері. Horizon ніколи не бачить ваш пароль.",
   "Colours the buttons, the switches and the sky. Pick one, or type any hex colour.": "Фарбує кнопки, перемикачі та небо. Виберіть колір або введіть будь-який hex-колір.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
   "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Виберіть відеокарту для цього екземпляра Minecraft на Rust або використайте типове значення з Налаштувань. Oxidum налаштує PRIME автоматично.",
   "Graphics card": "Відеокарта",
   "Launcher graphics card": "Відеокарта лаунчера",
@@ -1043,5 +1041,7 @@
   "{gpu} (system default)": "{gpu} (системна за замовчуванням)",
   "Automatic / system": "Автоматично / система",
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Виберіть GPU для відтворення Oxidum. Автоматичний режим зберігає спосіб запуску Oxidum; вибрана відеокарта буде застосована під час наступного запуску Oxidum.",
-  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Типовий GPU для екземплярів Minecraft на Rust. Кожен екземпляр може перевизначити його у своїх налаштуваннях запуску."
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Типовий GPU для екземплярів Minecraft на Rust. Кожен екземпляр може перевизначити його у своїх налаштуваннях запуску.",
+  "Oxidum and its icon are in your desktop's menu.": "Oxidum і його значок є в меню застосунків вашої системи.",
+  "Oxidum purple by default. Every colour keeps text as easy to read.": "Oxidum purple by default. Every colour keeps text as easy to read."
 }
