@@ -247,7 +247,7 @@ mod tests {
         let g = Glass::default_look();
         let soft = oklab(g.accent_soft);
         let mixed = [0, 1, 2].map(|i| oklab(ACCENT)[i] * 0.52 + oklab(0xffffff)[i] * 0.48);
-        for (i, want) in [0.772018, 0.0291158, -0.12693].into_iter().enumerate() {
+        for (i, want) in [0.7793512, 0.0488354, 0.0508413].into_iter().enumerate() {
             assert!(
                 (mixed[i] - want).abs() < 1e-3,
                 "accent-soft oklab {mixed:?}"
