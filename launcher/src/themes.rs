@@ -2,14 +2,14 @@
 //! Home.
 //!
 //! An accent is a hue, and the player may pick any of them; eight accents have names, as shortcuts.
-//! Oxidum's copper is the default. Another hue turns the base tokens (`horizon_theme::Blocks`'
+//! Oxidum's purple is the default. Another hue turns the base tokens (`horizon_theme::Blocks`'
 //! accent and the main action's face, bevel and lip) to it, keeping their saturation and
 //! lightness, then darkens or lightens each just enough to preserve the same readability: white
 //! on the face at 4.5:1, the accent at 3:1 on every background.
 use horizon_theme::{contrast, Blocks};
 use std::path::{Path, PathBuf};
 
-/// An accent: a hue in degrees, or none for Oxidum's copper, whose tokens are the palette's own
+/// An accent: a hue in degrees, or none for Oxidum's purple, whose tokens are the palette's own
 /// and stay untouched; and for a colour typed as hex, that colour (the glass look wears it as
 /// is, the light look takes its hue).
 #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -21,7 +21,7 @@ pub struct Accent {
 
 /// The glass look's colour for each of [`Accent::ALL`]: the mockup's swatches.
 pub const SWATCHES: [u32; 8] = [
-    0xb85b29, 0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,
+    0x724ddb, 0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,
 ];
 
 /// [`Accent::ALL`]'s names, in its order.
@@ -156,7 +156,7 @@ impl Accent {
             .map(Self::custom)
     }
 
-    /// Its hue in degrees; None for Oxidum's default copper, whose tokens stay as they are.
+    /// Its hue in degrees; None for Oxidum's default purple, whose tokens stay as they are.
     pub fn hue(self) -> Option<f32> {
         self.hue
     }

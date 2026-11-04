@@ -399,9 +399,8 @@ pub fn solid(
     )
 }
 
-/// Horizon's mark on its dark tile (`MarkTile`): the mark 64 % of the tile, round at 26 %; the
-/// stems white, their reflection white at 40 %, the horizon in the accent's soft shade.
-pub fn mark_tile(size: f32, accent_soft: u32) -> Div {
+/// Oxidum's fixed brand mark on its dark tile: a white/grey O split by the neon-purple seam.
+pub fn mark_tile(size: f32, _accent_soft: u32) -> Div {
     let inner = size * 0.64;
     let u = inner / 16.;
     let bar = |x: f32, y: f32, w: f32, h: f32, c: Hsla| {
@@ -420,16 +419,18 @@ pub fn mark_tile(size: f32, accent_soft: u32) -> Div {
         .justify_center()
         .size(px(size))
         .rounded(px((size * 0.26).round()))
-        .bg(color(0x0c0818))
+        .bg(color(0x13131e))
         .child(
             div()
                 .relative()
                 .size(px(inner))
-                .child(bar(4., 3., 2., 4., white(1.)))
-                .child(bar(10., 3., 2., 4., white(1.)))
-                .child(bar(4., 8., 2., 4., white(0.4)))
-                .child(bar(10., 8., 2., 4., white(0.4)))
-                .child(bar(1., 7., 14., 1., color(accent_soft))),
+                .child(bar(5., 2., 6., 2., white(1.)))
+                .child(bar(3., 4., 2., 3., white(1.)))
+                .child(bar(11., 4., 2., 3., white(1.)))
+                .child(bar(3., 8., 2., 3., color(0x5a5a64)))
+                .child(bar(11., 8., 2., 3., color(0x5a5a64)))
+                .child(bar(5., 11., 6., 2., color(0x5a5a64)))
+                .child(bar(1., 7., 14., 1., color(0x8a69f0))),
         )
 }
 

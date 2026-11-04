@@ -1941,13 +1941,12 @@ fn version_tag(tag: &str) -> Div {
         )
 }
 
-/// Oxidum's mark: copper above the seam, oxidized patina below it.
+/// Oxidum's mark: a white/grey O split by the fixed neon-purple brand seam.
 fn mark(size: f32, _t: &Theme) -> Div {
     let u = size / 16.;
-    let copper_hi: Hsla = gpui::rgb(0xeb9655).into();
-    let copper: Hsla = gpui::rgb(0xb85b29).into();
-    let transition: Hsla = gpui::rgb(0x71866b).into();
-    let patina: Hsla = gpui::rgb(0x55ad93).into();
+    let brand: Hsla = gpui::rgb(0x8a69f0).into();
+    let top: Hsla = gpui::rgb(0xf4f2ff).into();
+    let bottom: Hsla = gpui::rgb(0x5a5a64).into();
     let bar = |x: f32, y: f32, w: f32, h: f32, color: Hsla| {
         div()
             .absolute()
@@ -1961,15 +1960,13 @@ fn mark(size: f32, _t: &Theme) -> Div {
         .relative()
         .flex_none()
         .size(px(size))
-        .child(bar(5., 2., 6., 2., copper_hi))
-        .child(bar(3., 4., 2., 3., copper))
-        .child(bar(11., 4., 2., 3., copper))
-        .child(bar(3., 8., 2., 3., transition))
-        .child(bar(11., 8., 2., 3., patina))
-        .child(bar(5., 11., 6., 2., patina))
-        .child(bar(1., 7., 6., 1., copper_hi))
-        .child(bar(7., 7., 3., 1., transition))
-        .child(bar(10., 7., 5., 1., patina))
+        .child(bar(5., 2., 6., 2., top))
+        .child(bar(3., 4., 2., 3., top))
+        .child(bar(11., 4., 2., 3., top))
+        .child(bar(3., 8., 2., 3., bottom))
+        .child(bar(11., 8., 2., 3., bottom))
+        .child(bar(5., 11., 6., 2., bottom))
+        .child(bar(1., 7., 14., 1., brand))
 }
 
 /// The last thing the player did was press Tab: focused controls show a ring (a click focuses them
@@ -5107,7 +5104,7 @@ impl Render for Launcher {
                 .line_height(px(theme::WORDMARK.px * 0.5))
                 .font_weight(FontWeight::BOLD)
                 .text_color(t.ink)
-                .children("HORIZON".chars().enumerate().map(|(i, c)| {
+                .children("OXIDUM".chars().enumerate().map(|(i, c)| {
                     let at = held - i as f32 * theme::STAGGER.as_secs_f32() * 1.5;
                     let p = ease_out_cubic(at / theme::ENTER.as_secs_f32());
                     div()

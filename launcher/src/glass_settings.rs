@@ -341,7 +341,7 @@ impl Launcher {
         let about = card()
             .child(index_row(
                 0,
-                "Horizon",
+                "Oxidum",
                 Some(div().child(b.horizon).into_any_element()),
                 b.horizon_action,
                 &t,
@@ -384,7 +384,7 @@ impl Launcher {
                     0,
                     tr("Applications menu"),
                     note(if self.settings.desktop_entry() {
-                        "Horizon and its icon are in your desktop's menu."
+                        "Oxidum and its icon are in your desktop's menu."
                     } else {
                         "Not in your desktop's menu."
                     }),

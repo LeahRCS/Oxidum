@@ -130,7 +130,7 @@ fn a_typed_colour_is_worn_as_is_and_survives_settings_json() {
     // The mockup's swatches are the named accents.
     assert_eq!(Accent::parse("#2563EB"), Some(Accent::BLUE));
     assert_eq!(Accent::BLUE.hex(), "#2563eb");
-    assert_eq!(Accent::OXIDUM.hex(), "#b85b29");
+    assert_eq!(Accent::OXIDUM.hex(), "#724ddb");
     assert_eq!(Accent::VIOLET.hex(), "#6b4bff");
     // Any other colour keeps its exact value for the glass look, and its hue for the light one.
     let typed = Accent::parse("#ff8800").unwrap();
