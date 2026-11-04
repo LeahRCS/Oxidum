@@ -637,7 +637,7 @@ text = text.replace(
 )
 text = text.replace(
     'const NAMES: [&str; 7] = ["violet", "blue", "teal", "green", "amber", "red", "pink"];',
-    'const NAMES: [&str; 8] = ["oxidum", "violet", "blue", "teal", "green", "amber", "red", "pink"];',
+    'const NAMES: [&str; 8] = [\n    "oxidum", "violet", "blue", "teal", "green", "amber", "red", "pink",\n];',
 )
 text = text.replace(
     "impl Accent {\n    pub const VIOLET: Accent = Accent {\n        hue: None,\n        rgb: None,\n    };",
