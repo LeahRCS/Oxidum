@@ -67,6 +67,13 @@ jobs:
           grep -Fq 'oxidum-linux-x86_64.AppImage' "$temp/launcher/src/backend.rs"
           grep -Fq 'title: Some("Oxidum".into())' "$temp/launcher/src/titlebar.rs"
           grep -Fq 'Icon=oxidum' "$temp/packaging/linux/horizon-launcher.desktop"
+          grep -Fq '"OXIDUM".chars().enumerate()' "$temp/launcher/src/main.rs"
+          grep -Fq '"Oxidum"' "$temp/launcher/src/frame.rs"
+          ! grep -Fq '"Horizon-Free"' "$temp/launcher/src/frame.rs"
+          grep -Fq '"Oxidum"' "$temp/launcher/src/glass_settings.rs"
+          ! grep -Fq '"Horizon and its icon are in your desktop' "$temp/launcher/src/glass_settings.rs"
+          grep -Fq 'accent: 0x724ddb' "$temp/crates/horizon-theme/src/night.rs"
+          grep -Fq '0x8a69f0' "$temp/launcher/src/glass_ui.rs"
       - name: Test launcher
         run: cargo test --release --locked
       - name: Build launcher
@@ -77,6 +84,21 @@ jobs:
           rm -rf out && mkdir out
           ../packaging/linux/appimage.sh target/release/horizon-launcher "$version" out
           sha256sum out/oxidum-linux-x86_64.AppImage
+      - name: Verify packaged Oxidum identity
+        run: |
+          rm -rf "$RUNNER_TEMP/oxidum-appimage-root"
+          mkdir -p "$RUNNER_TEMP/oxidum-appimage-root"
+          (
+            cd "$RUNNER_TEMP/oxidum-appimage-root"
+            "$GITHUB_WORKSPACE/launcher/out/oxidum-linux-x86_64.AppImage" --appimage-extract >/dev/null
+          )
+          bin="$RUNNER_TEMP/oxidum-appimage-root/squashfs-root/usr/bin/horizon-launcher"
+          strings "$bin" | grep -Fq 'OXIDUM'
+          strings "$bin" | grep -Fq 'https://github.com/LeahRCS/Oxidum'
+          if strings "$bin" | grep -Fq 'https://github.com/0CYBER/horizon-free'; then
+            echo "::error::Packaged launcher still contains the old Horizon-Free repository branding"
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: oxidum-appimage
