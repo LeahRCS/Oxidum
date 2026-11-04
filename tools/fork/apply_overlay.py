@@ -68,12 +68,13 @@ fn mark(size: f32, t: &Theme) -> Div {
                 .bg(t.accent),
         )
 }"""
-new_mark = """/// Oxidum's mark: a white/grey O split by the fixed neon-purple brand seam.
+new_mark = """/// Oxidum's mark: copper above the seam, oxidized patina below it.
 fn mark(size: f32, _t: &Theme) -> Div {
     let u = size / 16.;
-    let brand: Hsla = gpui::rgb(0x8a69f0).into();
-    let top: Hsla = gpui::rgb(0xf4f2ff).into();
-    let bottom: Hsla = gpui::rgb(0x5a5a64).into();
+    let copper_hi: Hsla = gpui::rgb(0xeb9655).into();
+    let copper: Hsla = gpui::rgb(0xb85b29).into();
+    let transition: Hsla = gpui::rgb(0x71866b).into();
+    let patina: Hsla = gpui::rgb(0x55ad93).into();
     let bar = |x: f32, y: f32, w: f32, h: f32, color: Hsla| {
         div()
             .absolute()
@@ -87,13 +88,15 @@ fn mark(size: f32, _t: &Theme) -> Div {
         .relative()
         .flex_none()
         .size(px(size))
-        .child(bar(5., 2., 6., 2., top))
-        .child(bar(3., 4., 2., 3., top))
-        .child(bar(11., 4., 2., 3., top))
-        .child(bar(3., 8., 2., 3., bottom))
-        .child(bar(11., 8., 2., 3., bottom))
-        .child(bar(5., 11., 6., 2., bottom))
-        .child(bar(1., 7., 14., 1., brand))
+        .child(bar(5., 2., 6., 2., copper_hi))
+        .child(bar(3., 4., 2., 3., copper))
+        .child(bar(11., 4., 2., 3., copper))
+        .child(bar(3., 8., 2., 3., transition))
+        .child(bar(11., 8., 2., 3., patina))
+        .child(bar(5., 11., 6., 2., patina))
+        .child(bar(1., 7., 6., 1., copper_hi))
+        .child(bar(7., 7., 3., 1., transition))
+        .child(bar(10., 7., 5., 1., patina))
 }"""
 if old_mark not in text:
     raise SystemExit("Oxidum overlay: launcher mark changed upstream")
@@ -175,7 +178,7 @@ start = text.find("/// Horizon's mark on its dark tile")
 end = text.find("/// A big square button", start)
 if start < 0 or end < 0:
     raise SystemExit("Oxidum overlay: Glass mark changed upstream")
-glass_mark = """/// Oxidum's fixed brand mark on its dark tile: a white/grey O split by the neon-purple seam.
+glass_mark = """/// Oxidum's fixed brand mark on its dark tile, matching the app icon's copper-to-patina oxidation.
 pub fn mark_tile(size: f32, _accent_soft: u32) -> Div {
     let inner = size * 0.64;
     let u = inner / 16.;
@@ -195,53 +198,64 @@ pub fn mark_tile(size: f32, _accent_soft: u32) -> Div {
         .justify_center()
         .size(px(size))
         .rounded(px((size * 0.26).round()))
-        .bg(color(0x13131e))
+        .bg(color(0x181a22))
         .child(
             div()
                 .relative()
                 .size(px(inner))
-                .child(bar(5., 2., 6., 2., white(1.)))
-                .child(bar(3., 4., 2., 3., white(1.)))
-                .child(bar(11., 4., 2., 3., white(1.)))
-                .child(bar(3., 8., 2., 3., color(0x5a5a64)))
-                .child(bar(11., 8., 2., 3., color(0x5a5a64)))
-                .child(bar(5., 11., 6., 2., color(0x5a5a64)))
-                .child(bar(1., 7., 14., 1., color(0x8a69f0))),
+                .child(bar(5., 2., 6., 2., color(0xeb9655)))
+                .child(bar(3., 4., 2., 3., color(0xb85b29)))
+                .child(bar(11., 4., 2., 3., color(0xb85b29)))
+                .child(bar(3., 8., 2., 3., color(0x71866b)))
+                .child(bar(11., 8., 2., 3., color(0x55ad93)))
+                .child(bar(5., 11., 6., 2., color(0x55ad93)))
+                .child(bar(1., 7., 6., 1., color(0xeb9655)))
+                .child(bar(7., 7., 3., 1., color(0x71866b)))
+                .child(bar(10., 7., 5., 1., color(0x55ad93))),
         )
 }
 
 """
 p.write_text(text[:start] + glass_mark + text[end:])
 
+# Glass defaults come from the Oxidum icon instead of Horizon's violet.
+p = Path("crates/horizon-theme/src/glass.rs")
+text = p.read_text()
+for old, new in [
+    ("pub const ACCENT: u32 = 0x6b4bff;", "pub const ACCENT: u32 = 0xb85b29;"),
+    ("pub const PAGE: u32 = 0x0a0919;", "pub const PAGE: u32 = 0x181a22;"),
+    ("pub const LIVE: u32 = 0x4ade80;", "pub const LIVE: u32 = 0x55ad93;"),
+    ("pub const WARN: u32 = 0xf2c46b;", "pub const WARN: u32 = 0xeb9655;"),
+    ("/// A dark violet from the accent: what the plates are tinted with.", "/// A dark charcoal/copper mix from the accent: what the plates are tinted with."),
+    ("/// `--base: color-mix(in oklab, accent 10%, #14111d)`, and `.hzl-glass`'s background", "/// `--base: color-mix(in oklab, accent 10%, #181a22)`, and `.hzl-glass`'s background"),
+    ("let base = mix_oklab(accent, 0x14111d, 0.10);", "let base = mix_oklab(accent, 0x181a22, 0.10);"),
+    ("close(g.accent_soft, 0xa9a9ff)", "close(g.accent_soft, 0xdeaa91)"),
+    ('assert!(close(g.base, 0x1b1830), "base {:06x}", g.base);', 'assert!(close(g.base, 0x272125), "base {:06x}", g.base);'),
+    ('assert!(close(g.plate, 0x4e4c5f), "plate {:06x}", g.plate);', 'assert!(close(g.plate, 0x585356), "plate {:06x}", g.plate);'),
+]:
+    text = text.replace(old, new)
+p.write_text(text)
+
 # Oxidum's default colour language: copper action/focus, patina success.
 p = Path("crates/horizon-theme/src/night.rs")
 text = p.read_text()
-text = text.replace("one violet for the main", "Oxidum purple for the main")
-text = text.replace("with the night's violet.", "with Oxidum's purple accent.")
+text = text.replace("one violet for the main", "Oxidum copper for the main")
+text = text.replace("with the night's violet.", "with Oxidum's copper accent.")
 text = text.replace(
     "accent: 0x7656fa,\n    accent_hi: 0xa08cff,\n    on_accent: 0xffffff,\n    success: 0x5fd39a,\n    warn: 0xf5b45a,",
-    "accent: 0x724ddb,\n    accent_hi: 0x8a69f0,\n    on_accent: 0xffffff,\n    success: 0x55ad93,\n    warn: 0xd9a45c,",
+    "accent: 0xb85b29,\n    accent_hi: 0xeb9655,\n    on_accent: 0xffffff,\n    success: 0x55ad93,\n    warn: 0xd9a45c,",
 )
 text = text.replace(
     "accent: 0x5b3fd6,\n    accent_hi: 0x5333c9,\n    on_accent: 0xffffff,\n    success: 0x136336,\n    warn: 0x7a4f00,",
-    "accent: 0x6338c9,\n    accent_hi: 0x5b32b6,\n    on_accent: 0xffffff,\n    success: 0x286858,\n    warn: 0x755000,",
+    "accent: 0x934018,\n    accent_hi: 0x843a16,\n    on_accent: 0xffffff,\n    success: 0x286858,\n    warn: 0x755000,",
 )
-text = text.replace(
-    "sky: [0x07061a, 0x140f38, 0x2a1656, 0x5b2a78, 0xb0477d, 0xf08a5d],",
-    "sky: [0x080811, 0x0d0c18, 0x151323, 0x211a38, 0x35265a, 0x53378f],",
-)
-text = text.replace("page: 0x0e0b26,", "page: 0x13131e,")
-text = text.replace("side: 0x0a0820,", "side: 0x10101a,")
-text = text.replace("card: 0x15112e,", "card: 0x1b1b29,")
-text = text.replace("card_hi: 0x231c4a,", "card_hi: 0x27273a,")
-text = text.replace("stroke: 0xb9acff,", "stroke: 0x8a69f0,")
 p.write_text(text)
 
 p = Path("launcher/src/themes.rs")
 text = p.read_text()
 text = text.replace(
     "An accent is a hue, and the player may pick any of them; seven hues have names, as shortcuts.\n//! Horizon's violet is the default. Another hue turns the violet tokens",
-    "An accent is a hue, and the player may pick any of them; eight accents have names, as shortcuts.\n//! Oxidum's purple is the default. Another hue turns the base tokens",
+    "An accent is a hue, and the player may pick any of them; eight accents have names, as shortcuts.\n//! Oxidum's copper is the default. Another hue turns the base tokens",
 )
 text = text.replace(
     "lightness, then darkens or lightens each just enough to read as well as the violet does:",
@@ -249,11 +263,11 @@ text = text.replace(
 )
 text = text.replace(
     "/// An accent: a hue in degrees, or none for Horizon's violet, whose tokens are the palette's own",
-    "/// An accent: a hue in degrees, or none for Oxidum's purple, whose tokens are the palette's own",
+    "/// An accent: a hue in degrees, or none for Oxidum's copper, whose tokens are the palette's own",
 )
 text = text.replace(
     "pub const SWATCHES: [u32; 7] = [\n    0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,\n];",
-    "pub const SWATCHES: [u32; 8] = [\n    0x724ddb, 0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,\n];",
+    "pub const SWATCHES: [u32; 8] = [\n    0xb85b29, 0x6b4bff, 0x2563eb, 0x0f766e, 0x15803d, 0xc2410c, 0xdc2626, 0xbe185d,\n];",
 )
 text = text.replace(
     'const NAMES: [&str; 7] = ["violet", "blue", "teal", "green", "amber", "red", "pink"];',
@@ -276,7 +290,7 @@ text = text.replace(
 )
 text = text.replace(
     "/// Its hue in degrees; None for the violet, whose tokens stay as they are.",
-    "/// Its hue in degrees; None for Oxidum's default purple, whose tokens stay as they are.",
+    "/// Its hue in degrees; None for Oxidum's default copper, whose tokens stay as they are.",
 )
 p.write_text(text)
 
@@ -284,12 +298,12 @@ p = Path("launcher/src/themes_page.rs")
 text = p.read_text()
 text = text.replace(
     "Horizon's violet by default. Every colour keeps text as easy to read.",
-    "Oxidum purple by default. Every colour keeps text as easy to read.",
+    "Oxidum copper by default. Every colour keeps text as easy to read.",
 )
 text = text.replace("its seven swatches", "its eight swatches")
 text = text.replace(
     'self.field(Field::AccentHex, "#6b4bff", 96., cx)',
-    'self.field(Field::AccentHex, "#724ddb", 96., cx)',
+    'self.field(Field::AccentHex, "#b85b29", 96., cx)',
 )
 p.write_text(text)
 
@@ -313,7 +327,7 @@ text = text.replace(
 )
 text = text.replace(
     'assert_eq!(Accent::VIOLET.hex(), "#6b4bff");',
-    'assert_eq!(Accent::OXIDUM.hex(), "#724ddb");\n    assert_eq!(Accent::VIOLET.hex(), "#6b4bff");',
+    'assert_eq!(Accent::OXIDUM.hex(), "#b85b29");\n    assert_eq!(Accent::VIOLET.hex(), "#6b4bff");',
 )
 p.write_text(text)
 
@@ -395,18 +409,13 @@ for old, new in [
 ]:
     text = text.replace(old, new)
 for old, new in [
-    ("--night-sky-0: #07061a;", "--night-sky-0: #080811;"),
-    ("--night-sky-1: #140f38;", "--night-sky-1: #0d0c18;"),
-    ("--night-sky-2: #2a1656;", "--night-sky-2: #151323;"),
-    ("--night-sky-3: #5b2a78;", "--night-sky-3: #211a38;"),
-    ("--night-sky-4: #b0477d;", "--night-sky-4: #35265a;"),
-    ("--night-sky-5: #f08a5d;", "--night-sky-5: #53378f;"),
-    ("--night-page: #0e0b26;", "--night-page: #13131e;"),
-    ("--night-side: #0a0820;", "--night-side: #10101a;"),
-    ("--night-card: rgba(21, 17, 46, 0.84);", "--night-card: rgba(27, 27, 41, 0.84);"),
-    ("--night-card-hi: rgba(35, 28, 74, 0.9);", "--night-card-hi: rgba(39, 39, 58, 0.9);"),
-    ("--night-stroke: rgba(185, 172, 255, 0.12);", "--night-stroke: rgba(138, 105, 240, 0.12);"),
-    ("--night-rule: rgba(185, 172, 255, 0.1);", "--night-rule: rgba(138, 105, 240, 0.1);"),
+    ("--glass-accent: #6b4bff;", "--glass-accent: #b85b29;"),
+    ("--glass-accent-soft: #a9a9ff;", "--glass-accent-soft: #deaa91;"),
+    ("--glass-base: #1b1830;", "--glass-base: #272125;"),
+    ("--glass-page: #0a0919;", "--glass-page: #181a22;"),
+    ("--glass-live: #4ade80;", "--glass-live: #55ad93;"),
+    ("--glass-warn: #f2c46b;", "--glass-warn: #eb9655;"),
+    ("--glass-plate: rgba(78, 76, 95, 0.267);", "--glass-plate: rgba(88, 83, 86, 0.267);"),
 ]:
     text = text.replace(old, new)
 p.write_text(text)
@@ -559,7 +568,7 @@ translation_keys = {
     "Horizon needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.": "Oxidum needs a Microsoft account that owns Minecraft: Java Edition, like other launchers. It also plays online servers with your name and skin.",
     "Unsigned: you picked these programs yourself, and Horizon can't check where they came from. Updates never replace them.": "Unsigned: you picked these programs yourself, and Oxidum can't check where they came from. Updates never replace them.",
     "Horizon is built in the open. Sponsors fund the next release.": "Oxidum is built in the open. Sponsors fund the next release.",
-    "Horizon's violet by default. Every colour keeps text as easy to read.": "Oxidum purple by default. Every colour keeps text as easy to read.",
+    "Horizon's violet by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
     "Installs Horizon Launcher for this account. No administrator needed.": "Installs Oxidum Launcher for this account. No administrator needed.",
     "Removes Horizon Launcher from this computer. Your worlds and the game's folder stay.": "Removes Oxidum Launcher from this computer. Your worlds and the game's folder stay.",
     "Horizon Launcher is installed.": "Oxidum Launcher is installed.",

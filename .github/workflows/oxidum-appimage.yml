@@ -72,8 +72,11 @@ jobs:
           ! grep -Fq '"Horizon-Free"' "$temp/launcher/src/frame.rs"
           grep -Fq '"Oxidum"' "$temp/launcher/src/glass_settings.rs"
           ! grep -Fq '"Horizon and its icon are in your desktop' "$temp/launcher/src/glass_settings.rs"
-          grep -Fq 'accent: 0x724ddb' "$temp/crates/horizon-theme/src/night.rs"
-          grep -Fq '0x8a69f0' "$temp/launcher/src/glass_ui.rs"
+          grep -Fq 'accent: 0xb85b29' "$temp/crates/horizon-theme/src/night.rs"
+          grep -Fq '0xb85b29' "$temp/launcher/src/glass_ui.rs"
+          grep -Fq 'pub const ACCENT: u32 = 0xb85b29;' "$temp/crates/horizon-theme/src/glass.rs"
+          grep -Fq 'pub const LIVE: u32 = 0x55ad93;' "$temp/crates/horizon-theme/src/glass.rs"
+          grep -Fq 'pub const PAGE: u32 = 0x181a22;' "$temp/crates/horizon-theme/src/glass.rs"
       - name: Test launcher
         run: cargo test --release --locked
       - name: Build launcher
