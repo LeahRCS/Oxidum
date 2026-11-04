@@ -1584,7 +1584,10 @@ fn reusable_java_root(root: &Path, minecraft: &str, start: &str) -> bool {
     let Ok(start) = mojang::relative(start) else {
         return false;
     };
-    let base = root.join("versions").join(&game).join(format!("{game}.json"));
+    let base = root
+        .join("versions")
+        .join(&game)
+        .join(format!("{game}.json"));
     let profile = root
         .join("versions")
         .join(&start)
