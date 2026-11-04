@@ -7,17 +7,17 @@
 //! player's own accent comes out as it does on the website.
 
 /// The mockup's defaults: accent, how much white the plates take, and their blur in px.
-pub const ACCENT: u32 = 0x6b4bff;
+pub const ACCENT: u32 = 0xb85b29;
 pub const TINT: f32 = 0.06;
 pub const BLUR: f32 = 24.;
 /// Behind the scene before it is drawn.
-pub const PAGE: u32 = 0x0a0919;
+pub const PAGE: u32 = 0x181a22;
 /// The dark text on a light accent, and on the white buttons.
 pub const ON_LIGHT: u32 = 0x100a1f;
 /// A running game or server, and a ready instance.
-pub const LIVE: u32 = 0x4ade80;
+pub const LIVE: u32 = 0x55ad93;
 /// Busy (pulsing) and partly-working states.
-pub const WARN: u32 = 0xf2c46b;
+pub const WARN: u32 = 0xeb9655;
 /// Destructive menu rows (`#ff8a8a`, hovered over `#ff6b6b` at 12 %).
 pub const DANGER: u32 = 0xff8a8a;
 pub const DANGER_HOVER: u32 = 0xff6b6b;
@@ -83,7 +83,7 @@ pub struct Glass {
     pub accent: u32,
     /// The accent mixed half with white: progress bars, ticks, the focus ring, links.
     pub accent_soft: u32,
-    /// A dark violet from the accent: what the plates are tinted with.
+    /// A dark charcoal/copper mix from the accent: what the plates are tinted with.
     pub base: u32,
     /// Text on the accent: white, or [`ON_LIGHT`] on a light accent.
     pub on_accent: u32,
@@ -96,10 +96,10 @@ pub struct Glass {
 
 impl Glass {
     /// The mockup's sums: `--accent-soft: color-mix(in oklab, accent 52%, white)`,
-    /// `--base: color-mix(in oklab, accent 10%, #14111d)`, and `.hzl-glass`'s background
+    /// `--base: color-mix(in oklab, accent 10%, #181a22)`, and `.hzl-glass`'s background
     /// `color-mix(in srgb, white tint, color-mix(in oklab, base 22%, transparent))`.
     pub fn new(accent: u32, tint: f32, blur: f32) -> Glass {
-        let base = mix_oklab(accent, 0x14111d, 0.10);
+        let base = mix_oklab(accent, 0x181a22, 0.10);
         // White at `tint` over the base at 22 %, mixed with premultiplied alpha as CSS does.
         let base_alpha = 0.22;
         let alpha = tint + (1. - tint) * base_alpha;
@@ -255,13 +255,13 @@ mod tests {
         }
         // Chrome clips the out-of-gamut blue the same way.
         assert!(
-            close(g.accent_soft, 0xa9a9ff),
+            close(g.accent_soft, 0xdeaa91),
             "accent-soft {:06x} {soft:?}",
             g.accent_soft
         );
-        assert!(close(g.base, 0x1b1830), "base {:06x}", g.base);
+        assert!(close(g.base, 0x272125), "base {:06x}", g.base);
         // color(srgb 0.30732 0.296469 0.370862 / 0.2668)
-        assert!(close(g.plate, 0x4e4c5f), "plate {:06x}", g.plate);
+        assert!(close(g.plate, 0x585356), "plate {:06x}", g.plate);
         assert!((g.plate_alpha - 0.2668).abs() < 1e-4);
     }
 

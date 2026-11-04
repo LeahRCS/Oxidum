@@ -399,7 +399,7 @@ pub fn solid(
     )
 }
 
-/// Oxidum's fixed brand mark on its dark tile: a white/grey O split by the neon-purple seam.
+/// Oxidum's fixed brand mark on its dark tile, matching the app icon's copper-to-patina oxidation.
 pub fn mark_tile(size: f32, _accent_soft: u32) -> Div {
     let inner = size * 0.64;
     let u = inner / 16.;
@@ -419,18 +419,20 @@ pub fn mark_tile(size: f32, _accent_soft: u32) -> Div {
         .justify_center()
         .size(px(size))
         .rounded(px((size * 0.26).round()))
-        .bg(color(0x13131e))
+        .bg(color(0x181a22))
         .child(
             div()
                 .relative()
                 .size(px(inner))
-                .child(bar(5., 2., 6., 2., white(1.)))
-                .child(bar(3., 4., 2., 3., white(1.)))
-                .child(bar(11., 4., 2., 3., white(1.)))
-                .child(bar(3., 8., 2., 3., color(0x5a5a64)))
-                .child(bar(11., 8., 2., 3., color(0x5a5a64)))
-                .child(bar(5., 11., 6., 2., color(0x5a5a64)))
-                .child(bar(1., 7., 14., 1., color(0x8a69f0))),
+                .child(bar(5., 2., 6., 2., color(0xeb9655)))
+                .child(bar(3., 4., 2., 3., color(0xb85b29)))
+                .child(bar(11., 4., 2., 3., color(0xb85b29)))
+                .child(bar(3., 8., 2., 3., color(0x71866b)))
+                .child(bar(11., 8., 2., 3., color(0x55ad93)))
+                .child(bar(5., 11., 6., 2., color(0x55ad93)))
+                .child(bar(1., 7., 6., 1., color(0xeb9655)))
+                .child(bar(7., 7., 3., 1., color(0x71866b)))
+                .child(bar(10., 7., 5., 1., color(0x55ad93))),
         )
 }
 

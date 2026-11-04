@@ -83,7 +83,7 @@ impl Launcher {
             Some(
                 div()
                     .child(tr(
-                        "Oxidum purple by default. Every colour keeps text as easy to read.",
+                        "Oxidum copper by default. Every colour keeps text as easy to read.",
                     ))
                     .into_any_element(),
             ),
@@ -155,7 +155,7 @@ impl Launcher {
                         cx.notify();
                     })),
             )
-            .child(self.field(Field::AccentHex, "#724ddb", 96., cx).ml(px(4.)));
+            .child(self.field(Field::AccentHex, "#b85b29", 96., cx).ml(px(4.)));
         let control = div()
             .flex()
             .flex_col()
