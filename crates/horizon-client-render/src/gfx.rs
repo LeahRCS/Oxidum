@@ -1801,10 +1801,10 @@ fn adapter_matches_selection(
 ) -> bool {
     // A reported PCI bus id is authoritative. Only fall back to the friendly name when
     // the backend does not expose a PCI id for this adapter.
-    if let Some(wanted) = pci {
-        if !info.device_pci_bus_id.is_empty() {
-            return info.device_pci_bus_id.eq_ignore_ascii_case(wanted);
-        }
+    if let Some(wanted) = pci
+        && !info.device_pci_bus_id.is_empty()
+    {
+        return info.device_pci_bus_id.eq_ignore_ascii_case(wanted);
     }
     let info_name = info.name.to_ascii_lowercase();
     wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name))
