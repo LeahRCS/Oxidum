@@ -602,6 +602,115 @@ linux = r'''    /// Linux launch helpers: GameMode and MangoHud, plus a physical
 text = text[:start] + linux + text[end:]
 p.write_text(text)
 
+# Oxidum Home treats Rust Edition and Java Edition as real switchable launch targets.
+p = Path("launcher/src/glass_home.rs")
+text = p.read_text()
+text = text.replace(".child(self.edition_tabs(java.is_some()))", ".child(self.edition_tabs(java.is_some(), cx))")
+start = text.find("    /// The edition tabs")
+end = text.find("    /// The instance's icon and its name", start)
+if start < 0 or end < 0:
+    raise SystemExit("Oxidum overlay: Home edition tabs changed upstream")
+edition = r'''    /// The edition tabs switch between Rust Edition and Java Edition instances.
+    fn edition_tabs(&mut self, java: bool, cx: &mut Context<Self>) -> Div {
+        let grass = self.vanilla_icon().and_then(|path| {
+            self.icon_image("mark:grass".into(), 18., false, move || {
+                std::fs::read(&path).ok()
+            })
+        });
+        let tab = |label: &'static str, icon: AnyElement, open: bool| {
+            let d = div()
+                .flex()
+                .flex_none()
+                .items_center()
+                .gap(px(6.))
+                .h(px(32.))
+                .px(px(12.))
+                .rounded(px(radius::CONTROL))
+                .font_family(horizon_theme::glass::FONT)
+                .text_size(px(13.))
+                .line_height(px(18.))
+                .child(icon)
+                .child(tr(label));
+            if open {
+                d.bg(white(fill::ACTIVE))
+                    .font_weight(FontWeight::MEDIUM)
+                    .text_color(white(ink::FULL))
+            } else {
+                d.text_color(white(ink::BODY))
+            }
+        };
+        let java_icon = match grass {
+            Some(image) => gpui::img(image)
+                .flex_none()
+                .size(px(18.))
+                .rounded(px(5.))
+                .into_any_element(),
+            None => div().into_any_element(),
+        };
+        let rust = tab(
+            "Rust Edition",
+            ui::mark_tile(18., self.look.accent_soft).into_any_element(),
+            !java,
+        )
+        .id("edition-rust")
+        .cursor_pointer()
+        .hover(|s| s.bg(white(fill::ACTIVE)))
+        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+            this.switch_edition(false, cx);
+            cx.notify();
+        }));
+        let java = tab("Java Edition", java_icon, java)
+            .id("edition-java")
+            .cursor_pointer()
+            .hover(|s| s.bg(white(fill::ACTIVE)))
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.switch_edition(true, cx);
+                cx.notify();
+            }));
+        div().flex().items_center().gap(px(4.)).child(rust).child(java)
+    }
+
+    fn switch_edition(&mut self, java: bool, cx: &mut Context<Self>) {
+        if self
+            .selected_instance()
+            .is_some_and(|instance| instance.java.is_some() == java)
+        {
+            return;
+        }
+        self.home_menu = HomeMenu::None;
+        self.picker_open = false;
+        let existing = self
+            .instances
+            .list
+            .iter()
+            .find(|instance| {
+                matches!(
+                    instance.kind,
+                    horizon_launcher::instances::Kind::Default
+                        | horizon_launcher::instances::Kind::Own
+                ) && instance.java.is_some() == java
+            })
+            .cloned();
+        if let Some(instance) = existing {
+            self.select_instance(&instance);
+            self.go(Page::Play);
+            return;
+        }
+        self.open_instance_dialog(None);
+        self.pick_kind(
+            if java {
+                new_instance::NewKind::Vanilla
+            } else {
+                new_instance::NewKind::Horizon
+            },
+            cx,
+        );
+    }
+
+'''
+text = text[:start] + edition + text[end:]
+p.write_text(text)
+
 # Oxidum's default colour language: copper action/focus, patina success.
 p = Path("crates/horizon-theme/src/night.rs")
 text = p.read_text()
