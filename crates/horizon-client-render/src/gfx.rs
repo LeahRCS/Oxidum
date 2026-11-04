@@ -1799,13 +1799,15 @@ fn adapter_matches_selection(
     pci: Option<&str>,
     wanted_name: Option<&str>,
 ) -> bool {
-    let pci_match = pci.is_some_and(|wanted| {
-        !info.device_pci_bus_id.is_empty() && info.device_pci_bus_id.eq_ignore_ascii_case(wanted)
-    });
+    // A reported PCI bus id is authoritative. Only fall back to the friendly name when
+    // the backend does not expose a PCI id for this adapter.
+    if let Some(wanted) = pci {
+        if !info.device_pci_bus_id.is_empty() {
+            return info.device_pci_bus_id.eq_ignore_ascii_case(wanted);
+        }
+    }
     let info_name = info.name.to_ascii_lowercase();
-    let name_match =
-        wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name));
-    pci_match || name_match
+    wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name))
 }
 
 /// Chooses the physical GPU the launcher requested for this Rust instance. The PCI bus id is
@@ -10393,7 +10395,13 @@ mod tests {
         assert!(!super::adapter_matches_selection(
             &info,
             Some("0000:02:00.0"),
-            Some("radeon"),
+            Some("nvidia geforce gtx 1660 ti"),
+        ));
+        info.device_pci_bus_id.clear();
+        assert!(super::adapter_matches_selection(
+            &info,
+            Some("0000:02:00.0"),
+            Some("geforce gtx 1660 ti"),
         ));
     }
 
