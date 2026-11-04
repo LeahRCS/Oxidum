@@ -482,6 +482,9 @@ gpu_translation_keys = {
     "ar": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "اختر بطاقة رسوميات بديلة لهذه النسخة من Minecraft المكتوبة بـ Rust، أو استخدم الإعداد الافتراضي من الإعدادات. يضبط Oxidum تقنية PRIME تلقائيًا.",
         "Graphics card": "بطاقة الرسوميات",
+        "Automatic / system": "تلقائي / النظام",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "اختر بطاقة الرسوميات التي تعرض Oxidum. يحافظ الوضع التلقائي على طريقة تشغيل Oxidum كما هي؛ ويتم تطبيق بطاقة محددة عند فتح Oxidum في المرة التالية.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "بطاقة الرسوميات الافتراضية لنسخ Minecraft المكتوبة بـ Rust. يمكن لكل نسخة تجاوز هذا الإعداد من إعدادات التشغيل الخاصة بها.",
         "Launcher graphics card": "بطاقة رسوميات المشغّل",
         "Rust Minecraft graphics card": "بطاقة رسوميات Minecraft بلغة Rust",
         "Use Settings default (automatic)": "استخدام الإعداد الافتراضي من الإعدادات (تلقائي)",
@@ -492,6 +495,9 @@ gpu_translation_keys = {
     "de": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Wähle für diese Rust-Minecraft-Instanz eine abweichende GPU oder verwende den Standard aus den Einstellungen. Oxidum konfiguriert PRIME automatisch.",
         "Graphics card": "Grafikkarte",
+        "Automatic / system": "Automatisch / System",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Wähle die GPU, die Oxidum rendert. Automatisch behält bei, wie Oxidum gestartet wurde; eine bestimmte Karte wird beim nächsten Start von Oxidum verwendet.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Standard-GPU für Rust-Minecraft-Instanzen. Eine einzelne Instanz kann dies in ihren Starteinstellungen überschreiben.",
         "Launcher graphics card": "Grafikkarte des Launchers",
         "Rust Minecraft graphics card": "Grafikkarte für Rust-Minecraft",
         "Use Settings default (automatic)": "Standard aus den Einstellungen verwenden (automatisch)",
@@ -502,6 +508,9 @@ gpu_translation_keys = {
     "es": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Elige una GPU distinta para esta instancia de Minecraft en Rust o usa la predeterminada de Ajustes. Oxidum configura PRIME automáticamente.",
         "Graphics card": "Tarjeta gráfica",
+        "Automatic / system": "Automático / sistema",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Elige la GPU que renderiza Oxidum. Automático conserva la forma en que se inició Oxidum; una tarjeta específica se aplicará la próxima vez que se abra Oxidum.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU predeterminada para las instancias de Minecraft en Rust. Cada instancia puede anularla en sus ajustes de inicio.",
         "Launcher graphics card": "Tarjeta gráfica del launcher",
         "Rust Minecraft graphics card": "Tarjeta gráfica de Minecraft en Rust",
         "Use Settings default (automatic)": "Usar predeterminada de Ajustes (automático)",
@@ -512,6 +521,9 @@ gpu_translation_keys = {
     "fr": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Choisis un GPU différent pour cette instance Minecraft Rust, ou utilise celui par défaut des paramètres. Oxidum configure PRIME automatiquement.",
         "Graphics card": "Carte graphique",
+        "Automatic / system": "Automatique / système",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Choisis le GPU qui affiche Oxidum. Automatique conserve la façon dont Oxidum a été lancé ; une carte précise sera utilisée au prochain démarrage d’Oxidum.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU par défaut pour les instances Minecraft Rust. Chaque instance peut le remplacer dans ses paramètres de lancement.",
         "Launcher graphics card": "Carte graphique du launcher",
         "Rust Minecraft graphics card": "Carte graphique de Minecraft Rust",
         "Use Settings default (automatic)": "Utiliser le choix par défaut des paramètres (automatique)",
@@ -522,6 +534,9 @@ gpu_translation_keys = {
     "hi": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "इस Rust Minecraft इंस्टेंस के लिए कोई अलग GPU चुनें, या Settings का डिफ़ॉल्ट इस्तेमाल करें। Oxidum PRIME को अपने आप कॉन्फ़िगर करता है।",
         "Graphics card": "ग्राफ़िक्स कार्ड",
+        "Automatic / system": "स्वचालित / सिस्टम",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Oxidum को रेंडर करने वाला GPU चुनें। स्वचालित मोड Oxidum को शुरू करने के मौजूदा तरीके को बनाए रखता है; चुना गया कार्ड अगली बार Oxidum खुलने पर लागू होगा।",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft इंस्टेंस के लिए डिफ़ॉल्ट GPU। हर इंस्टेंस अपनी लॉन्च सेटिंग में इसे बदल सकता है।",
         "Launcher graphics card": "लॉन्चर ग्राफ़िक्स कार्ड",
         "Rust Minecraft graphics card": "Rust Minecraft ग्राफ़िक्स कार्ड",
         "Use Settings default (automatic)": "Settings का डिफ़ॉल्ट इस्तेमाल करें (स्वचालित)",
@@ -532,6 +547,9 @@ gpu_translation_keys = {
     "hr": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Odaberi drugu grafičku karticu za ovu Rust Minecraft instancu ili koristi zadanu iz postavki. Oxidum automatski podešava PRIME.",
         "Graphics card": "Grafička kartica",
+        "Automatic / system": "Automatski / sustav",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Odaberi GPU koji prikazuje Oxidum. Automatski način zadržava način na koji je Oxidum pokrenut; određena kartica primjenjuje se pri sljedećem pokretanju Oxiduma.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Zadani GPU za Rust Minecraft instance. Pojedina instanca može ga nadjačati u svojim postavkama pokretanja.",
         "Launcher graphics card": "Grafička kartica pokretača",
         "Rust Minecraft graphics card": "Grafička kartica za Rust Minecraft",
         "Use Settings default (automatic)": "Koristi zadano iz postavki (automatski)",
@@ -542,6 +560,9 @@ gpu_translation_keys = {
     "id": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Pilih GPU khusus untuk instans Minecraft Rust ini, atau gunakan default dari Pengaturan. Oxidum mengatur PRIME secara otomatis.",
         "Graphics card": "Kartu grafis",
+        "Automatic / system": "Otomatis / sistem",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Pilih GPU yang merender Oxidum. Otomatis mempertahankan cara Oxidum dijalankan; kartu tertentu diterapkan saat Oxidum dibuka berikutnya.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU default untuk instans Minecraft Rust. Setiap instans dapat menggantinya di pengaturan peluncurannya.",
         "Launcher graphics card": "Kartu grafis launcher",
         "Rust Minecraft graphics card": "Kartu grafis Minecraft Rust",
         "Use Settings default (automatic)": "Gunakan default Pengaturan (otomatis)",
@@ -552,6 +573,9 @@ gpu_translation_keys = {
     "ja": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "このRust Minecraftインスタンス用に別のGPUを選ぶか、設定のデフォルトを使用します。OxidumがPRIMEを自動で設定します。",
         "Graphics card": "グラフィックカード",
+        "Automatic / system": "自動 / システム",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Oxidum の描画に使う GPU を選択します。自動では Oxidum の起動方法をそのまま使用し、特定のカードを選ぶと次回 Oxidum 起動時に適用されます。",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft インスタンスの既定 GPU です。各インスタンスの起動設定で上書きできます。",
         "Launcher graphics card": "ランチャーのグラフィックカード",
         "Rust Minecraft graphics card": "Rust Minecraftのグラフィックカード",
         "Use Settings default (automatic)": "設定のデフォルトを使用（自動）",
@@ -562,6 +586,9 @@ gpu_translation_keys = {
     "ko": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "이 Rust Minecraft 인스턴스에 사용할 GPU를 따로 선택하거나 설정의 기본값을 사용하세요. Oxidum이 PRIME을 자동으로 구성합니다.",
         "Graphics card": "그래픽 카드",
+        "Automatic / system": "자동 / 시스템",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Oxidum을 렌더링할 GPU를 선택하세요. 자동은 Oxidum이 시작된 방식을 그대로 유지하며, 특정 카드를 선택하면 다음에 Oxidum을 열 때 적용됩니다.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft 인스턴스의 기본 GPU입니다. 각 인스턴스의 실행 설정에서 재정의할 수 있습니다.",
         "Launcher graphics card": "런처 그래픽 카드",
         "Rust Minecraft graphics card": "Rust Minecraft 그래픽 카드",
         "Use Settings default (automatic)": "설정 기본값 사용 (자동)",
@@ -572,6 +599,9 @@ gpu_translation_keys = {
     "pl": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Wybierz inną kartę graficzną dla tej instancji Minecrafta w Rust albo użyj domyślnej z ustawień. Oxidum automatycznie skonfiguruje PRIME.",
         "Graphics card": "Karta graficzna",
+        "Automatic / system": "Automatycznie / system",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Wybierz GPU renderujący Oxidum. Tryb automatyczny zachowuje sposób uruchomienia Oxidum; wybrana karta zostanie użyta przy następnym uruchomieniu Oxidum.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Domyślny GPU dla instancji Minecrafta w Rust. Każda instancja może go zastąpić w swoich ustawieniach uruchamiania.",
         "Launcher graphics card": "Karta graficzna launchera",
         "Rust Minecraft graphics card": "Karta graficzna Minecrafta w Rust",
         "Use Settings default (automatic)": "Użyj domyślnej z ustawień (automatycznie)",
@@ -582,6 +612,9 @@ gpu_translation_keys = {
     "pt-br": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Escolha uma placa de vídeo específica para esta instância do Minecraft em Rust ou use o padrão das Configurações. O Oxidum configura o PRIME automaticamente.",
         "Graphics card": "Placa de vídeo",
+        "Automatic / system": "Automático / sistema",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Escolha a GPU que renderiza o Oxidum. Automático mantém exatamente a forma como o Oxidum foi iniciado; uma placa específica será aplicada na próxima vez que o Oxidum abrir.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU padrão para instâncias do Minecraft em Rust. Cada instância pode substituir esse padrão nas próprias configurações de inicialização.",
         "Launcher graphics card": "Placa de vídeo do launcher",
         "Rust Minecraft graphics card": "Placa de vídeo do Minecraft em Rust",
         "Use Settings default (automatic)": "Usar padrão das Configurações (automático)",
@@ -592,6 +625,9 @@ gpu_translation_keys = {
     "pt": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Escolha uma placa gráfica específica para esta instância do Minecraft em Rust ou use a predefinição das Definições. O Oxidum configura o PRIME automaticamente.",
         "Graphics card": "Placa gráfica",
+        "Automatic / system": "Automático / sistema",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Escolha a GPU que renderiza o Oxidum. Automático mantém a forma como o Oxidum foi iniciado; uma placa específica será aplicada da próxima vez que o Oxidum abrir.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU predefinida para instâncias do Minecraft em Rust. Cada instância pode substituí-la nas respetivas definições de arranque.",
         "Launcher graphics card": "Placa gráfica do launcher",
         "Rust Minecraft graphics card": "Placa gráfica do Minecraft em Rust",
         "Use Settings default (automatic)": "Usar predefinição das Definições (automático)",
@@ -602,6 +638,9 @@ gpu_translation_keys = {
     "ru": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Выберите видеокарту для этого экземпляра Minecraft на Rust или используйте значение по умолчанию из настроек. Oxidum настроит PRIME автоматически.",
         "Graphics card": "Видеокарта",
+        "Automatic / system": "Автоматически / система",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Выберите GPU для отрисовки Oxidum. Автоматический режим сохраняет способ запуска Oxidum; выбранная видеокарта будет применена при следующем запуске Oxidum.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU по умолчанию для экземпляров Minecraft на Rust. Для каждого экземпляра его можно переопределить в настройках запуска.",
         "Launcher graphics card": "Видеокарта лаунчера",
         "Rust Minecraft graphics card": "Видеокарта Minecraft на Rust",
         "Use Settings default (automatic)": "Использовать значение из настроек (автоматически)",
@@ -612,6 +651,9 @@ gpu_translation_keys = {
     "tr": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Bu Rust Minecraft örneği için bir ekran kartı seçin veya Ayarlar'daki varsayılanı kullanın. Oxidum PRIME yapılandırmasını otomatik olarak yapar.",
         "Graphics card": "Ekran kartı",
+        "Automatic / system": "Otomatik / sistem",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Oxidum'u işleyen GPU'yu seçin. Otomatik seçenek, Oxidum'un başlatılma biçimini korur; belirli bir kart seçerseniz bir sonraki Oxidum açılışında uygulanır.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft örnekleri için varsayılan GPU. Her örnek bunu kendi başlatma ayarlarında geçersiz kılabilir.",
         "Launcher graphics card": "Başlatıcının ekran kartı",
         "Rust Minecraft graphics card": "Rust Minecraft ekran kartı",
         "Use Settings default (automatic)": "Ayarlar varsayılanını kullan (otomatik)",
@@ -622,6 +664,9 @@ gpu_translation_keys = {
     "uk": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Виберіть відеокарту для цього екземпляра Minecraft на Rust або використайте типове значення з Налаштувань. Oxidum налаштує PRIME автоматично.",
         "Graphics card": "Відеокарта",
+        "Automatic / system": "Автоматично / система",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Виберіть GPU для відтворення Oxidum. Автоматичний режим зберігає спосіб запуску Oxidum; вибрана відеокарта буде застосована під час наступного запуску Oxidum.",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Типовий GPU для екземплярів Minecraft на Rust. Кожен екземпляр може перевизначити його у своїх налаштуваннях запуску.",
         "Launcher graphics card": "Відеокарта лаунчера",
         "Rust Minecraft graphics card": "Відеокарта Minecraft на Rust",
         "Use Settings default (automatic)": "Використати типове з Налаштувань (автоматично)",
@@ -632,6 +677,9 @@ gpu_translation_keys = {
     "zh": {
         "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "为这个 Rust Minecraft 实例选择显卡，或使用“设置”中的默认值。Oxidum 会自动配置 PRIME。",
         "Graphics card": "显卡",
+        "Automatic / system": "自动 / 系统",
+        "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "选择用于渲染 Oxidum 的 GPU。自动模式会保持 Oxidum 当前的启动方式；选择特定显卡后，将在下次打开 Oxidum 时生效。",
+        "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft 实例的默认 GPU。单个实例可在其启动设置中覆盖此默认值。",
         "Launcher graphics card": "启动器显卡",
         "Rust Minecraft graphics card": "Rust Minecraft 显卡",
         "Use Settings default (automatic)": "使用设置默认值（自动）",

@@ -1040,5 +1040,8 @@
   "Use Settings default (automatic)": "Usar predefinição das Definições (automático)",
   "Use Settings default ({gpu})": "Usar predefinição das Definições ({gpu})",
   "on {gpu}": "na {gpu}",
-  "{gpu} (system default)": "{gpu} (predefinição do sistema)"
+  "{gpu} (system default)": "{gpu} (predefinição do sistema)",
+  "Automatic / system": "Automático / sistema",
+  "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Escolha a GPU que renderiza o Oxidum. Automático mantém a forma como o Oxidum foi iniciado; uma placa específica será aplicada da próxima vez que o Oxidum abrir.",
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU predefinida para instâncias do Minecraft em Rust. Cada instância pode substituí-la nas respetivas definições de arranque."
 }

@@ -1040,5 +1040,8 @@
   "Use Settings default (automatic)": "使用设置默认值（自动）",
   "Use Settings default ({gpu})": "使用设置默认值（{gpu}）",
   "on {gpu}": "使用 {gpu}",
-  "{gpu} (system default)": "{gpu}（系统默认）"
+  "{gpu} (system default)": "{gpu}（系统默认）",
+  "Automatic / system": "自动 / 系统",
+  "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "选择用于渲染 Oxidum 的 GPU。自动模式会保持 Oxidum 当前的启动方式；选择特定显卡后，将在下次打开 Oxidum 时生效。",
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft 实例的默认 GPU。单个实例可在其启动设置中覆盖此默认值。"
 }

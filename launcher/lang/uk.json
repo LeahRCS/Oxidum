@@ -1040,5 +1040,8 @@
   "Use Settings default (automatic)": "Використати типове з Налаштувань (автоматично)",
   "Use Settings default ({gpu})": "Використати типове з Налаштувань ({gpu})",
   "on {gpu}": "на {gpu}",
-  "{gpu} (system default)": "{gpu} (системна за замовчуванням)"
+  "{gpu} (system default)": "{gpu} (системна за замовчуванням)",
+  "Automatic / system": "Автоматично / система",
+  "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Виберіть GPU для відтворення Oxidum. Автоматичний режим зберігає спосіб запуску Oxidum; вибрана відеокарта буде застосована під час наступного запуску Oxidum.",
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Типовий GPU для екземплярів Minecraft на Rust. Кожен екземпляр може перевизначити його у своїх налаштуваннях запуску."
 }
