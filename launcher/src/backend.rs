@@ -1553,6 +1553,64 @@ pub fn download_version_for_owner(
     Ok(dir)
 }
 
+/// Roots from Prism-family launchers whose public game files Oxidum can reuse. No account,
+/// token or launcher configuration is read from them.
+fn prism_java_roots() -> Vec<PathBuf> {
+    let Some(home) = std::env::var_os("HOME").map(PathBuf::from) else {
+        return Vec::new();
+    };
+    let data = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home.join(".local/share"));
+    [
+        data.join("HalkyLauncher"),
+        data.join("FreesmLauncher"),
+        data.join("PrismLauncher"),
+        home.join(".var/app/org.HalkyLauncher.HalkyLauncher/data/HalkyLauncher"),
+        home.join(".var/app/org.freesmlauncher.FreesmLauncher/data/FreesmLauncher"),
+        home.join(".var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher"),
+    ]
+    .into_iter()
+    .filter(|path| path.is_dir())
+    .collect()
+}
+
+/// Whether a launcher root already has the shared files a Java instance needs. Prism-family
+/// launchers use compatible assets, libraries and versions roots.
+fn reusable_java_root(root: &Path, minecraft: &str, start: &str) -> bool {
+    let Ok(game) = mojang::relative(minecraft) else {
+        return false;
+    };
+    let Ok(start) = mojang::relative(start) else {
+        return false;
+    };
+    let base = root.join("versions").join(&game).join(format!("{game}.json"));
+    let profile = root
+        .join("versions")
+        .join(&start)
+        .join(format!("{start}.json"));
+    root.join("assets").is_dir()
+        && root.join("libraries").is_dir()
+        && base.is_file()
+        && profile.is_file()
+}
+
+/// Oxidum's own game-file root wins. Otherwise reuse a complete Prism/Freesm/Halky root.
+/// Missing files still fall back to Oxidum's root, whose Mojang downloader remains owner-gated.
+fn java_minecraft_root(minecraft: &str, start: &str) -> (PathBuf, bool) {
+    let own = data_dir().join("minecraft");
+    if reusable_java_root(&own, minecraft, start) {
+        return (own, true);
+    }
+    if let Some(root) = prism_java_roots()
+        .into_iter()
+        .find(|root| reusable_java_root(root, minecraft, start))
+    {
+        return (root, true);
+    }
+    (own, false)
+}
+
 /// The command that starts a Java instance's Minecraft, for an account that owns the game: its
 /// version downloaded from Mojang the first time (then it starts offline too), the Java it needs
 /// (the instance's own, else one found here, else Mojang's, downloaded), and the game in the
@@ -1565,37 +1623,66 @@ pub fn java_game(
 ) -> Result<Command, String> {
     let game = instance.java.as_ref().ok_or_else(|| {
         format!(
-            "{} plays Horizon, not Minecraft: Java Edition",
+            "{} plays Oxidum's Rust Edition, not Minecraft: Java Edition",
             instance.name
         )
     })?;
-    let player = account::java_player()?;
-    let minecraft = data_dir().join("minecraft");
+
+    let mut start = game.minecraft.clone();
+    if let Some(loader) = &game.loader {
+        start = loader.kind.profile_id(&loader.version, &game.minecraft);
+    }
+
+    let (mut minecraft, mut local_files) = java_minecraft_root(&game.minecraft, &start);
     let id = mojang::relative(&game.minecraft)?;
-    let natives = minecraft.join("natives").join(&id);
-    // Each version and loader profile is fetched once; it then starts offline too.
-    let downloaded = |id: &str| -> Result<PathBuf, String> {
-        Ok(minecraft
+    let downloaded = |root: &Path, id: &str| -> Result<PathBuf, String> {
+        Ok(root
             .join("versions")
             .join(mojang::relative(id)?)
             .join(".downloaded"))
     };
-    let marker = downloaded(&game.minecraft)?;
-    if !marker.is_file() {
-        let listed = crate::minecraft_versions::load()?;
-        let version = listed.find(&game.minecraft)?;
-        download_version_for_owner(&version.id, &version.sha1, log)?;
-        fs::write(&marker, "").map_err(|e| format!("{}: {e}", marker.display()))?;
-    }
-    let mut start = game.minecraft.clone();
-    if let Some(loader) = &game.loader {
-        start = loader.kind.profile_id(&loader.version, &game.minecraft);
-        let marker = downloaded(&start)?;
+
+    if !local_files {
+        let marker = downloaded(&minecraft, &game.minecraft)?;
         if !marker.is_file() {
+            let listed = crate::minecraft_versions::load()?;
+            let version = listed.find(&game.minecraft)?;
+            download_version_for_owner(&version.id, &version.sha1, log)?;
+            fs::write(&marker, "").map_err(|e| format!("{}: {e}", marker.display()))?;
+        }
+        local_files = true;
+    } else if minecraft != data_dir().join("minecraft") {
+        log(format!(
+            "Reusing Minecraft {} files from {}",
+            game.minecraft,
+            minecraft.display()
+        ));
+    }
+
+    if let Some(loader) = &game.loader {
+        let profile = minecraft
+            .join("versions")
+            .join(mojang::relative(&start)?)
+            .join(format!("{start}.json"));
+        if !profile.is_file() {
+            let own = data_dir().join("minecraft");
+            if minecraft != own {
+                minecraft = own;
+                let base_marker = downloaded(&minecraft, &game.minecraft)?;
+                if !base_marker.is_file() {
+                    let listed = crate::minecraft_versions::load()?;
+                    let version = listed.find(&game.minecraft)?;
+                    download_version_for_owner(&version.id, &version.sha1, log)?;
+                    fs::write(&base_marker, "")
+                        .map_err(|e| format!("{}: {e}", base_marker.display()))?;
+                }
+            }
             start = crate::loaders::install(loader, &game.minecraft, &minecraft, &get_bytes, log)?;
-            fs::write(downloaded(&start)?, "").map_err(|e| e.to_string())?;
+            fs::write(downloaded(&minecraft, &start)?, "").map_err(|e| e.to_string())?;
         }
     }
+
+    let natives = minecraft.join("natives").join(&id);
     let file = minecraft
         .join("versions")
         .join(mojang::relative(&start)?)
@@ -1614,6 +1701,12 @@ pub fn java_game(
             log(format!("Downloading Java {} from Mojang", need.major));
             crate::java::install(&need, log)?
         }
+    };
+
+    let player = if OFFLINE_PLAY && local_files {
+        account::java_local_player()
+    } else {
+        account::java_player()?
     };
     let jvm_args: Vec<String> = game.jvm_args.split_whitespace().map(String::from).collect();
     fs::create_dir_all(&instance.home).map_err(|e| format!("{}: {e}", instance.home.display()))?;
