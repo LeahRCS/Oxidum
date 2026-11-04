@@ -29,18 +29,21 @@ jobs:
           git remote add upstream https://github.com/0CYBER/horizon-free.git
           git fetch upstream main
 
-          if git merge-base --is-ancestor upstream/main HEAD; then
-            echo "Already contains upstream/main."
+          upstream_sha=$(git rev-parse upstream/main)
+          locked_sha=$(tr -d '[:space:]' < tools/fork/upstream.lock 2>/dev/null || true)
+          if git merge-base --is-ancestor upstream/main HEAD && [[ "$locked_sha" == "$upstream_sha" ]]; then
+            echo "Already contains upstream/main and upstream.lock is current."
             exit 0
           fi
 
           branch=automation/upstream-sync
-          upstream_sha=$(git rev-parse upstream/main)
           git checkout -B "$branch" main
-          if ! git merge --no-edit upstream/main; then
-            git merge --abort || true
-            echo "::error::Upstream sync has conflicts. Manual reconciliation is required; main was not changed."
-            exit 1
+          if ! git merge-base --is-ancestor upstream/main HEAD; then
+            if ! git merge --no-edit upstream/main; then
+              git merge --abort || true
+              echo "::error::Upstream sync has conflicts. Manual reconciliation is required; main was not changed."
+              exit 1
+            fi
           fi
 
           printf '%s\n' "$upstream_sha" > tools/fork/upstream.lock
