@@ -59,6 +59,8 @@ jobs:
           git clone --depth 1 https://github.com/0CYBER/horizon-free.git "$temp"
           mkdir -p "$temp/packaging/icons/hicolor/scalable/apps"
           cp packaging/icons/hicolor/scalable/apps/oxidum.svg "$temp/packaging/icons/hicolor/scalable/apps/oxidum.svg"
+          mkdir -p "$temp/packaging/icons/hicolor/256x256/apps"
+          cp packaging/icons/hicolor/256x256/apps/oxidum.png "$temp/packaging/icons/hicolor/256x256/apps/oxidum.png"
           (cd "$temp" && python3 "$GITHUB_WORKSPACE/tools/fork/apply_overlay.py")
           git -C "$temp" apply "$GITHUB_WORKSPACE/tools/fork/gpu-selection.patch"
           grep -Fq 'LAUNCHER_REPO: &str = "LeahRCS/Oxidum"' "$temp/launcher/src/backend.rs"
@@ -73,7 +75,11 @@ jobs:
           grep -Fq '"Oxidum"' "$temp/launcher/src/glass_settings.rs"
           ! grep -Fq '"Horizon and its icon are in your desktop' "$temp/launcher/src/glass_settings.rs"
           grep -Fq 'accent: 0xb85b29' "$temp/crates/horizon-theme/src/night.rs"
-          grep -Fq '0xb85b29' "$temp/launcher/src/glass_ui.rs"
+          if grep -Fq 'pub fn mark_tile' "$temp/launcher/src/glass_ui.rs"; then
+            grep -Fq '0xb85b29' "$temp/launcher/src/glass_ui.rs"
+          else
+            grep -Fq 'oxidum.png' "$temp/launcher/src/instance_icons.rs"
+          fi
           grep -Fq 'pub const ACCENT: u32 = 0xb85b29;' "$temp/crates/horizon-theme/src/glass.rs"
           grep -Fq 'pub const LIVE: u32 = 0x55ad93;' "$temp/crates/horizon-theme/src/glass.rs"
           grep -Fq 'pub const PAGE: u32 = 0x181a22;' "$temp/crates/horizon-theme/src/glass.rs"
@@ -143,6 +149,7 @@ jobs:
           cp tools/fork/apply_overlay.py "$RUNNER_TEMP/apply_overlay.py"
           cp tools/fork/gpu-selection.patch "$RUNNER_TEMP/gpu-selection.patch"
           cp packaging/icons/hicolor/scalable/apps/oxidum.svg "$RUNNER_TEMP/oxidum.svg"
+          cp packaging/icons/hicolor/256x256/apps/oxidum.png "$RUNNER_TEMP/oxidum.png"
 
       - name: Check out exact upstream release source
         if: steps.upstream.outputs.exists != 'true'
@@ -153,6 +160,8 @@ jobs:
           git checkout --detach FETCH_HEAD
           mkdir -p packaging/icons/hicolor/scalable/apps
           cp "$RUNNER_TEMP/oxidum.svg" packaging/icons/hicolor/scalable/apps/oxidum.svg
+          mkdir -p packaging/icons/hicolor/256x256/apps
+          cp "$RUNNER_TEMP/oxidum.png" packaging/icons/hicolor/256x256/apps/oxidum.png
           python3 "$RUNNER_TEMP/apply_overlay.py"
           git apply "$RUNNER_TEMP/gpu-selection.patch"
 
