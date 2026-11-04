@@ -667,7 +667,12 @@ edition = r'''    /// The edition tabs switch between Rust Edition and Java Edit
                 this.switch_edition(true, cx);
                 cx.notify();
             }));
-        div().flex().items_center().gap(px(4.)).child(rust).child(java)
+        div()
+            .flex()
+            .items_center()
+            .gap(px(4.))
+            .child(rust)
+            .child(java)
     }
 
     fn switch_edition(&mut self, java: bool, cx: &mut Context<Self>) {
@@ -774,21 +779,21 @@ fn prism_java_roots() -> Vec<PathBuf> {
     .collect()
 }
 
-fn reusable_java_root(root: &Path, minecraft: &str, start: &str) -> bool {
+fn reusable_java_root(root: &Path, minecraft: &str, start_id: &str) -> bool {
     let Ok(game) = mojang::relative(minecraft) else {
         return false;
     };
-    let Ok(start) = mojang::relative(start) else {
+    let Ok(start) = mojang::relative(start_id) else {
         return false;
     };
     let base = root
         .join("versions")
         .join(&game)
-        .join(format!("{game}.json"));
+        .join(format!("{minecraft}.json"));
     let profile = root
         .join("versions")
         .join(&start)
-        .join(format!("{start}.json"));
+        .join(format!("{start_id}.json"));
     root.join("assets").is_dir()
         && root.join("libraries").is_dir()
         && base.is_file()
