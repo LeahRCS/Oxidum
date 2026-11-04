@@ -165,7 +165,9 @@ p.write_text(text)
 
 p = Path("launcher/src/glass_settings.rs")
 text = p.read_text()
+# Older layouts pass a bare string; newer Glass About tiles call .into().
 text = text.replace('                "Horizon",', '                "Oxidum",')
+text = text.replace('                "Horizon".into(),', '                "Oxidum".into(),')
 text = text.replace(
     "Horizon and its icon are in your desktop's menu.",
     "Oxidum and its icon are in your desktop's menu.",
