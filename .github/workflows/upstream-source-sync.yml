@@ -35,11 +35,18 @@ jobs:
           fi
 
           branch=automation/upstream-sync
+          upstream_sha=$(git rev-parse upstream/main)
           git checkout -B "$branch" main
           if ! git merge --no-edit upstream/main; then
             git merge --abort || true
             echo "::error::Upstream sync has conflicts. Manual reconciliation is required; main was not changed."
             exit 1
+          fi
+
+          printf '%s\n' "$upstream_sha" > tools/fork/upstream.lock
+          git add tools/fork/upstream.lock
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(fork): lock Horizon-Free upstream source"
           fi
 
           git push --force-with-lease origin "$branch"
