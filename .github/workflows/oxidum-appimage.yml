@@ -77,6 +77,13 @@ jobs:
           git -C "$temp" apply --check "$GITHUB_WORKSPACE/tools/fork/gpu-selection.patch"
           git -C "$temp" apply "$GITHUB_WORKSPACE/tools/fork/gpu-selection.patch"
           python3 tools/fork/verify_overlay.py "$temp"
+      - name: Check transformed locked upstream compiles
+        working-directory: .
+        run: |
+          set -euo pipefail
+          temp="$RUNNER_TEMP/oxidum-overlay-test"
+          cargo fmt --manifest-path "$temp/launcher/Cargo.toml" --all -- --check
+          cargo check --locked --manifest-path "$temp/launcher/Cargo.toml"
       - name: Test launcher
         run: cargo test --release --locked
       - name: Build launcher
