@@ -102,7 +102,7 @@ impl Launcher {
                     .font_weight(FontWeight::MEDIUM)
                     .text_color(white(ink::FULL))
             } else {
-                d.text_color(white(ink::OFF))
+                d.text_color(white(ink::BODY))
             }
         };
         let java_icon = match grass {
