@@ -62,7 +62,6 @@
   "Friends type it in Multiplayer, Add Server, once this computer is shared with them and Tailscale runs on theirs.": "Друзья вводят его в меню «Сетевая игра» > «Добавить сервер», когда вы поделитесь с ними этим компьютером и они запустят Tailscale у себя.",
   "From my install": "Из моей установки",
   "the update failed: {error}": "обновление не удалось: {error}",
-  "Mesa's DRI_PRIME=1, so Vulkan picks the other card.": "DRI_PRIME=1 от Mesa, чтобы Vulkan выбрал другую видеокарту.",
   "New name": "Новое имя",
   "Dark": "Тёмное",
   "Not now": "Не сейчас",
@@ -546,7 +545,6 @@
   "Made the instance {name} from the shared file.": "Создана сборка {name} из общего файла.",
   "For the game and the commands; INST_NAME, INST_DIR and the other instance variables are set too.": "Для игры и команд; также задаются INST_NAME, INST_DIR и другие переменные сборки.",
   "copied from your folder": "copied from your folder",
-  "NVIDIA render offload: __NV_PRIME_RENDER_OFFLOAD and its Vulkan layer.": "Разгрузка рендеринга NVIDIA: __NV_PRIME_RENDER_OFFLOAD и соответствующий слой Vulkan.",
   "Network": "Сеть",
   "Waiting for Microsoft… the window goes on by itself.": "Ожидание Microsoft… окно продолжит само.",
   "Game files": "Файлы игры",
@@ -1034,5 +1032,13 @@
   "Sign in with the account that owns Minecraft: Java Edition. Your name and skin come along to online servers, like in other launchers.": "Войдите в учётную запись, которой принадлежит Minecraft: Java Edition. Имя и скин будут с вами на онлайн-серверах, как в других лаунчерах.",
   "Microsoft's own page opens in your browser. Horizon never sees your password.": "Страница Microsoft открывается в вашем браузере. Horizon никогда не видит ваш пароль.",
   "Colours the buttons, the switches and the sky. Pick one, or type any hex colour.": "Окрашивает кнопки, переключатели и небо. Выберите цвет или введите любой hex-цвет.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
+  "Choose an override for this Rust Minecraft instance, or use the default from Settings. Oxidum configures PRIME automatically.": "Выберите видеокарту для этого экземпляра Minecraft на Rust или используйте значение по умолчанию из настроек. Oxidum настроит PRIME автоматически.",
+  "Graphics card": "Видеокарта",
+  "Launcher graphics card": "Видеокарта лаунчера",
+  "Rust Minecraft graphics card": "Видеокарта Minecraft на Rust",
+  "Use Settings default (automatic)": "Использовать значение из настроек (автоматически)",
+  "Use Settings default ({gpu})": "Использовать значение из настроек ({gpu})",
+  "on {gpu}": "на {gpu}",
+  "{gpu} (system default)": "{gpu} (системная по умолчанию)"
 }
