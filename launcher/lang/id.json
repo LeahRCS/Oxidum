@@ -1040,5 +1040,8 @@
   "Use Settings default (automatic)": "Gunakan default Pengaturan (otomatis)",
   "Use Settings default ({gpu})": "Gunakan default Pengaturan ({gpu})",
   "on {gpu}": "di {gpu}",
-  "{gpu} (system default)": "{gpu} (default sistem)"
+  "{gpu} (system default)": "{gpu} (default sistem)",
+  "Automatic / system": "Otomatis / sistem",
+  "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Pilih GPU yang merender Oxidum. Otomatis mempertahankan cara Oxidum dijalankan; kartu tertentu diterapkan saat Oxidum dibuka berikutnya.",
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU default untuk instans Minecraft Rust. Setiap instans dapat menggantinya di pengaturan peluncurannya."
 }

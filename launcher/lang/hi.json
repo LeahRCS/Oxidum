@@ -1040,5 +1040,8 @@
   "Use Settings default (automatic)": "Settings का डिफ़ॉल्ट इस्तेमाल करें (स्वचालित)",
   "Use Settings default ({gpu})": "Settings का डिफ़ॉल्ट इस्तेमाल करें ({gpu})",
   "on {gpu}": "{gpu} पर",
-  "{gpu} (system default)": "{gpu} (सिस्टम डिफ़ॉल्ट)"
+  "{gpu} (system default)": "{gpu} (सिस्टम डिफ़ॉल्ट)",
+  "Automatic / system": "स्वचालित / सिस्टम",
+  "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Oxidum को रेंडर करने वाला GPU चुनें। स्वचालित मोड Oxidum को शुरू करने के मौजूदा तरीके को बनाए रखता है; चुना गया कार्ड अगली बार Oxidum खुलने पर लागू होगा।",
+  "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft इंस्टेंस के लिए डिफ़ॉल्ट GPU। हर इंस्टेंस अपनी लॉन्च सेटिंग में इसे बदल सकता है।"
 }
