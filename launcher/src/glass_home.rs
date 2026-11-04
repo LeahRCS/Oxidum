@@ -41,7 +41,7 @@ impl Launcher {
                 .flex_col()
                 .flex_1()
                 .min_w_0()
-                .child(self.edition_tabs(java.is_some()))
+                .child(self.edition_tabs(java.is_some(), cx))
                 .child(self.home_title())
                 .child(self.played_text(cx))
                 .child(
@@ -75,9 +75,9 @@ impl Launcher {
             .child(self.glass_join_friend(tag, wide, cx))
     }
 
-    /// The edition tabs (`Tabs`, size `sm`): the instance's own lit. An instance's edition is
-    /// chosen when it is made, so the other one is shown but can't be picked.
-    fn edition_tabs(&mut self, java: bool) -> Div {
+    /// The edition tabs switch between Rust Edition and Java Edition instances. If the chosen
+    /// edition does not exist yet, its tab opens the New instance dialog already on that edition.
+    fn edition_tabs(&mut self, java: bool, cx: &mut Context<Self>) -> Div {
         let grass = self.vanilla_icon().and_then(|path| {
             self.icon_image("mark:grass".into(), 18., false, move || {
                 std::fs::read(&path).ok()
@@ -113,16 +113,76 @@ impl Launcher {
                 .into_any_element(),
             None => div().into_any_element(),
         };
+        let rust = tab(
+            "Rust Edition",
+            ui::mark_tile(18., self.look.accent_soft).into_any_element(),
+            !java,
+        )
+        .id("edition-rust")
+        .cursor_pointer()
+        .hover(|s| s.bg(white(fill::ACTIVE)))
+        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+            this.switch_edition(false, cx);
+            cx.notify();
+        }));
+        let java = tab("Java Edition", java_icon, java)
+            .id("edition-java")
+            .cursor_pointer()
+            .hover(|s| s.bg(white(fill::ACTIVE)))
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.switch_edition(true, cx);
+                cx.notify();
+            }));
         div()
             .flex()
             .items_center()
             .gap(px(4.))
-            .child(tab(
-                "Rust Edition",
-                ui::mark_tile(18., self.look.accent_soft).into_any_element(),
-                !java,
-            ))
-            .child(tab("Java Edition", java_icon, java))
+            .child(rust)
+            .child(java)
+    }
+
+    /// Switches Home to an existing instance of the requested edition. When there is none yet,
+    /// opens New instance on Rust Edition (Oxidum) or Java Edition (Vanilla); the Java dialog can
+    /// then switch to Modded and choose its loader.
+    fn switch_edition(&mut self, java: bool, cx: &mut Context<Self>) {
+        if self
+            .selected_instance()
+            .is_some_and(|instance| instance.java.is_some() == java)
+        {
+            return;
+        }
+
+        self.home_menu = HomeMenu::None;
+        self.picker_open = false;
+
+        let existing = self
+            .instances
+            .list
+            .iter()
+            .find(|instance| {
+                matches!(
+                    instance.kind,
+                    horizon_launcher::instances::Kind::Default
+                        | horizon_launcher::instances::Kind::Own
+                ) && instance.java.is_some() == java
+            })
+            .cloned();
+
+        if let Some(instance) = existing {
+            self.select_instance(&instance);
+            self.go(Page::Play);
+            return;
+        }
+
+        self.open_instance_dialog(None);
+        self.pick_kind(
+            if java {
+                new_instance::NewKind::Vanilla
+            } else {
+                new_instance::NewKind::Horizon
+            },
+            cx,
+        );
     }
 
     /// The instance's icon and its name in Bricolage, 64 px at this width
