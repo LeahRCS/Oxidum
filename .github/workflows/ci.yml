@@ -145,8 +145,9 @@ jobs:
   # a harness, an oracle, a probe or the runner, or carries the run-parity label (run-parity.yml, when it is added).
   parity-scope:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    # A git diff of this repository's own branch: one of playhorizon's small runners (docs/ci-runners.md).
-    runs-on: ${{ vars.SELF_HOSTED_CI != 'off' && fromJSON('["self-hosted", "linux", "playhorizon-light"]') || 'ubuntu-latest' }}
+    # A git diff of this repository's own branch. Forks/default setups use GitHub-hosted runners;
+    # playhorizon's private light runner is used only when SELF_HOSTED_CI=all is explicitly configured.
+    runs-on: ${{ vars.SELF_HOSTED_CI == 'all' && fromJSON('["self-hosted", "linux", "playhorizon-light"]') || 'ubuntu-latest' }}
     outputs:
       run: ${{ steps.scope.outputs.run }}
     steps:
