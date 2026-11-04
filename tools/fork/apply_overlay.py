@@ -176,9 +176,8 @@ p = Path("launcher/src/glass_ui.rs")
 text = p.read_text()
 start = text.find("/// Horizon's mark on its dark tile")
 end = text.find("/// A big square button", start)
-if start < 0 or end < 0:
-    raise SystemExit("Oxidum overlay: Glass mark changed upstream")
-glass_mark = """/// Oxidum's fixed brand mark on its dark tile, matching the app icon's copper-to-patina oxidation.
+if start >= 0 and end >= 0:
+    glass_mark = """/// Oxidum's fixed brand mark on its dark tile, matching the app icon's copper-to-patina oxidation.
 pub fn mark_tile(size: f32, _accent_soft: u32) -> Div {
     let inner = size * 0.64;
     let u = inner / 16.;
@@ -216,7 +215,16 @@ pub fn mark_tile(size: f32, _accent_soft: u32) -> Div {
 }
 
 """
-p.write_text(text[:start] + glass_mark + text[end:])
+    p.write_text(text[:start] + glass_mark + text[end:])
+else:
+    # Newer upstream moved the default-instance brand mark to a packaged PNG.
+    p = Path("launcher/src/instance_icons.rs")
+    text = p.read_text()
+    old = 'const MARK: &[u8] = include_bytes!("../../packaging/icons/hicolor/256x256/apps/horizon.png");'
+    new = 'const MARK: &[u8] = include_bytes!("../../packaging/icons/hicolor/256x256/apps/oxidum.png");'
+    if old not in text:
+        raise SystemExit("Oxidum overlay: could not find either Glass mark implementation")
+    p.write_text(text.replace(old, new))
 
 # Glass defaults come from the Oxidum icon instead of Horizon's violet.
 p = Path("crates/horizon-theme/src/glass.rs")
