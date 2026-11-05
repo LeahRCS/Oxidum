@@ -39,11 +39,7 @@ pub trait Provider {
     /// Stable diagnostic name shown in the launch log.
     fn id(&self) -> &'static str;
 
-    fn acquire(
-        &self,
-        request: &Request<'_>,
-        log: &dyn Fn(String),
-    ) -> Result<Outcome, String>;
+    fn acquire(&self, request: &Request<'_>, log: &dyn Fn(String)) -> Result<Outcome, String>;
 }
 
 /// Provider registry.

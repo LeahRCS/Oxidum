@@ -1557,11 +1557,7 @@ pub fn download_version_for_owner(
 ///
 /// Providers always populate Oxidum's own Minecraft root. This keeps runtime, loader and launch
 /// behavior independent from whichever acquisition strategy supplied the vanilla files.
-fn acquire_java_version(
-    id: &str,
-    manifest_sha1: &str,
-    log: &dyn Fn(String),
-) -> Result<(), String> {
+fn acquire_java_version(id: &str, manifest_sha1: &str, log: &dyn Fn(String)) -> Result<(), String> {
     let destination = data_dir().join("minecraft");
     let request = crate::java_acquisition::Request {
         minecraft: id,
