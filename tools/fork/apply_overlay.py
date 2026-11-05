@@ -933,9 +933,22 @@ java_game = r'''pub fn java_game(
 '''
 loaders_source = Path("launcher/src/loaders.rs").read_text()
 if "    java: &Path," in loaders_source:
-    loader_install = "crate::loaders::install(loader, &game.minecraft, &minecraft, &runtime.java(), &get_bytes, log)?"
+    loader_install = """crate::loaders::install(
+                loader,
+                &game.minecraft,
+                &minecraft,
+                &runtime.java(),
+                &get_bytes,
+                log,
+            )?"""
 else:
-    loader_install = "crate::loaders::install(loader, &game.minecraft, &minecraft, &get_bytes, log)?"
+    loader_install = """crate::loaders::install(
+                loader,
+                &game.minecraft,
+                &minecraft,
+                &get_bytes,
+                log,
+            )?"""
 java_game = java_game.replace("__OXIDUM_LOADER_INSTALL__", loader_install)
 text = text[:start] + java_game + text[end:]
 p.write_text(text)
