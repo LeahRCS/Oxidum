@@ -931,7 +931,7 @@ fn java_minecraft_root(minecraft: &str, start: &str) -> (PathBuf, bool) {
     (own, false)
 }
 
-'''fn acquire_java_version(
+fn acquire_java_version(
     id: &str,
     manifest_sha1: &str,
     log: &dyn Fn(String),
@@ -948,7 +948,7 @@ fn java_minecraft_root(minecraft: &str, start: &str) -> (PathBuf, bool) {
     download_version_for_owner(id, manifest_sha1, log).map(|_| ())
 }
 
-
+'''
     text = text[:at] + helpers + text[at:]
 
 start = text.find("pub fn java_game(")
