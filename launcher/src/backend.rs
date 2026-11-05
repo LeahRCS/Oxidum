@@ -1553,6 +1553,27 @@ pub fn download_version_for_owner(
     Ok(dir)
 }
 
+/// Tries Oxidum's pluggable Java acquisition providers before the built-in official fallback.
+///
+/// Providers always populate Oxidum's own Minecraft root. This keeps runtime, loader and launch
+/// behavior independent from whichever acquisition strategy supplied the vanilla files.
+fn acquire_java_version(
+    id: &str,
+    manifest_sha1: &str,
+    log: &dyn Fn(String),
+) -> Result<(), String> {
+    let destination = data_dir().join("minecraft");
+    let request = crate::java_acquisition::Request {
+        minecraft: id,
+        manifest_sha1,
+        destination: &destination,
+    };
+    if crate::java_acquisition::acquire(&request, log)? {
+        return Ok(());
+    }
+    download_version_for_owner(id, manifest_sha1, log).map(|_| ())
+}
+
 /// Roots from Prism-family launchers whose public game files Oxidum can reuse. No account,
 /// token or launcher configuration is read from them.
 fn prism_java_roots() -> Vec<PathBuf> {
@@ -1650,7 +1671,7 @@ pub fn java_game(
         if !marker.is_file() {
             let listed = crate::minecraft_versions::load()?;
             let version = listed.find(&game.minecraft)?;
-            download_version_for_owner(&version.id, &version.sha1, log)?;
+            acquire_java_version(&version.id, &version.sha1, log)?;
             fs::write(&marker, "").map_err(|e| format!("{}: {e}", marker.display()))?;
         }
         local_files = true;
@@ -1675,7 +1696,7 @@ pub fn java_game(
                 if !base_marker.is_file() {
                     let listed = crate::minecraft_versions::load()?;
                     let version = listed.find(&game.minecraft)?;
-                    download_version_for_owner(&version.id, &version.sha1, log)?;
+                    acquire_java_version(&version.id, &version.sha1, log)?;
                     fs::write(&base_marker, "")
                         .map_err(|e| format!("{}: {e}", base_marker.display()))?;
                 }

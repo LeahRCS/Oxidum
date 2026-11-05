@@ -21,6 +21,7 @@ pub mod import;
 pub mod installer;
 pub mod instances;
 pub mod java;
+pub mod java_acquisition;
 pub mod java_launch;
 pub mod launch;
 pub mod loaders;
