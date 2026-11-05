@@ -4,7 +4,6 @@
   "Prepare": "تحضير",
   "Developer options": "خيارات المطور",
   "{online} of {max} players": "{online} من {max} لاعبين",
-  "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.": "ماين كرافت {version} (إصدار جافا). يقوم الزر \"تشغيل\" بتنزيلها من موجانج لحسابك في المرة الأولى، مع إصدار جافا الذي تحتاجه.",
   "Close": "إغلاق",
   "Builds from GitHub. Each one installs into its own folder.": "إصدارات من جيت هاب. يتم تثبيت كل منها في مجلد خاص به.",
   "Copy…": "نسخ…",
@@ -1043,5 +1042,6 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "اختر بطاقة الرسوميات التي تعرض Oxidum. يحافظ الوضع التلقائي على طريقة تشغيل Oxidum كما هي؛ ويتم تطبيق بطاقة محددة عند فتح Oxidum في المرة التالية.",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "بطاقة الرسوميات الافتراضية لنسخ Minecraft المكتوبة بـ Rust. يمكن لكل نسخة تجاوز هذا الإعداد من إعدادات التشغيل الخاصة بها.",
   "Oxidum and its icon are in your desktop's menu.": "هورايزون وأيقونته موجودان في قائمة سطح المكتب.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
+  "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (إصدار Java). يعيد Oxidum استخدام ملفات Freesm أو Halky أو Prism المتوافقة عندما تكون مثبتة بالفعل؛ وإلا فسيقوم التشغيل بتنزيل اللعبة من Mojang باستخدام حساب يملكها."
 }

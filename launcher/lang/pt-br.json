@@ -182,7 +182,6 @@
   "Keep": "Manter",
   "Move to Trash": "Mover para a lixeira",
   "Move {name} to the Trash, with its worlds and settings? You can get it back from there.": "Deseja mover {name} para a lixeira junto com seus mundos e configurações? Você poderá restaurá-lo posteriormente.",
-  "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.": "Minecraft {version} (Java Edition). Na primeira vez, ao clicar em Jogar, o jogo será baixado da Mojang para sua conta junto com a versão do Java necessária.",
   "These mods were made for different Oxidum versions": "Estes mods foram criados para versões diferentes do Oxidum",
   "They often still work together. If the build fails, install versions made for the same Nightly.": "Mesmo assim, eles geralmente funcionam juntos. Se a compilação falhar, instale versões criadas para a mesma versão Nightly.",
   "Build anyway": "Compilar mesmo assim",
@@ -1043,5 +1042,6 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Escolha a GPU que renderiza o Oxidum. Automático mantém exatamente a forma como o Oxidum foi iniciado; uma placa específica será aplicada na próxima vez que o Oxidum abrir.",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "GPU padrão para instâncias do Minecraft em Rust. Cada instância pode substituir esse padrão nas próprias configurações de inicialização.",
   "Oxidum and its icon are in your desktop's menu.": "O Oxidum e seu ícone estão no menu de aplicativos do seu computador.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Cobre do Oxidum por padrão. Todas as cores mantêm o texto igualmente legível."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Cobre do Oxidum por padrão. Todas as cores mantêm o texto igualmente legível.",
+  "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). O Oxidum reutiliza arquivos compatíveis do Freesm, Halky ou Prism quando já estão instalados; caso contrário, Jogar baixa o jogo da Mojang para uma conta que o possua."
 }

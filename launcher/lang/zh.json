@@ -4,7 +4,6 @@
   "Prepare": "准备",
   "Developer options": "开发者选项",
   "{online} of {max} players": "{online} / {max} 名玩家",
-  "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.": "Minecraft {version}（Java 版）。首次点击“开始游戏”时，会用你的账户从 Mojang 下载游戏及其所需的 Java。",
   "Close": "关闭",
   "Builds from GitHub. Each one installs into its own folder.": "来自 GitHub 的构建版本。每个版本均安装在各自的文件夹中。",
   "Copy…": "复制…",
@@ -1043,5 +1042,6 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "选择用于渲染 Oxidum 的 GPU。自动模式会保持 Oxidum 当前的启动方式；选择特定显卡后，将在下次打开 Oxidum 时生效。",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft 实例的默认 GPU。单个实例可在其启动设置中覆盖此默认值。",
   "Oxidum and its icon are in your desktop's menu.": "Oxidum 及其图标已在桌面的应用程序菜单中。",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
+  "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version}（Java 版）。如果已安装兼容的 Freesm、Halky 或 Prism 文件，Oxidum 会直接复用；否则，“游玩”会通过拥有该游戏的账户从 Mojang 下载游戏。"
 }
