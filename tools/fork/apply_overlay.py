@@ -607,7 +607,11 @@ p.write_text(text)
 # instead of replacing it with the compatibility version used for older upstream revisions.
 p = Path("launcher/src/glass_home.rs")
 text = p.read_text()
-if "fn switch_edition(" not in text or 'id("edition-java")' not in text:
+modern_edition_switch = (
+    "fn switch_edition(" in text
+    and ('id("edition-java")' in text or 'format!("edition-{label}")' in text)
+)
+if not modern_edition_switch:
     text = text.replace(".child(self.edition_tabs(java.is_some()))", ".child(self.edition_tabs(java.is_some(), cx))")
     start = text.find("    /// The edition tabs")
     end = text.find("    /// The instance's icon and its name", start)
