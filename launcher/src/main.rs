@@ -488,6 +488,13 @@ impl Launcher {
         })
         .detach();
         let mut settings = Settings::load();
+        if settings.brand_palette_version == 0 {
+            if settings.accent == horizon_launcher::themes::Accent::VIOLET {
+                settings.accent = horizon_launcher::themes::Accent::OXIDUM;
+            }
+            settings.brand_palette_version = 1;
+            let _ = settings.save();
+        }
         // Horizon-free: allow playing without a Microsoft account that owns the game.
         settings.dev_offline = backend::OFFLINE_PLAY;
         i18n::set(settings.language());

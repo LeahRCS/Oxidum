@@ -74,6 +74,11 @@ require("crates/horizon-theme/src/night.rs", "accent: 0xb85b29", "copper Night a
 require("crates/horizon-theme/src/glass.rs", "pub const ACCENT: u32 = 0xb85b29;", "copper Glass accent")
 require("crates/horizon-theme/src/glass.rs", "pub const LIVE: u32 = 0x55ad93;", "patina live/success")
 require("crates/horizon-theme/src/glass.rs", "pub const PAGE: u32 = 0x181a22;", "charcoal Glass base")
+require("launcher/src/scene.rs", "const FOG: u32 = 0x55ad93;", "patina Glass scene")
+require("launcher/src/scene.rs", "0xeb9655", "copper Glass scene")
+require("launcher/src/sky.rs", "far: 0x3f5f53", "oxidized night sky art")
+require("launcher/src/backend.rs", "pub brand_palette_version: u8,", "one-time palette migration state")
+require("launcher/src/main.rs", "settings.brand_palette_version == 0", "legacy violet migration")
 require("packaging/icons/hicolor/scalable/apps/oxidum.svg", "#B85B29", "Oxidum SVG copper")
 require("packaging/icons/hicolor/scalable/apps/oxidum.svg", "#55AD93", "Oxidum SVG patina")
 

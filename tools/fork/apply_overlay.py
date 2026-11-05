@@ -1189,6 +1189,169 @@ text = text.replace(
 )
 p.write_text(text)
 
+# Oxidum's scene follows the icon too: charcoal, copper, oxidation and patina.
+p = Path("launcher/src/scene.rs")
+text = p.read_text()
+text = text.replace(
+    """const SKY: [u32; 15] = [
+    0x0a0919, 0x0f0c28, 0x151136, 0x1d1444, 0x281850, 0x361b5b, 0x481e66, 0x5d236e, 0x752873,
+    0x902f76, 0xab3a75, 0xc64a71, 0xde5f6a, 0xef7c63, 0xf89d62,
+];""",
+    """const SKY: [u32; 15] = [
+    0x0b0d10, 0x101318, 0x151a1d, 0x1b2323, 0x222d29, 0x2a3830, 0x34443a, 0x405043, 0x4e5c49,
+    0x5d684d, 0x6f7350, 0x827a50, 0x9a7f4d, 0xbf874f, 0xeb9655,
+];""",
+)
+text = text.replace(
+    """const SUN: [u32; 7] = [
+    0xfff5d2, 0xffe4a0, 0xffca78, 0xffac5f, 0xff8c58, 0xfb6c62, 0xee5277,
+];
+const HALO: u32 = 0xff8d6a;
+const FOG: u32 = 0xe0697c;
+const RIM: u32 = 0xffb27c;
+const CLOUD_HIGH: u32 = 0x5f2c7c;
+const CLOUD_LOW: u32 = 0xc95985;
+const CLOUD_TOP: u32 = 0xf3a6bd;
+const FIREFLY: u32 = 0xffd98c;
+const STAR_COOL: u32 = 0xd2c8ff;
+const STAR_WARM: u32 = 0xfff3e4;""",
+    """const SUN: [u32; 7] = [
+    0xffe3bd, 0xf8c88d, 0xebaa68, 0xeb9655, 0xd47c3d, 0xb85b29, 0x8a684d,
+];
+const HALO: u32 = 0xeb9655;
+const FOG: u32 = 0x55ad93;
+const RIM: u32 = 0x71866b;
+const CLOUD_HIGH: u32 = 0x26352f;
+const CLOUD_LOW: u32 = 0x447564;
+const CLOUD_TOP: u32 = 0x91b9aa;
+const FIREFLY: u32 = 0xeb9655;
+const STAR_COOL: u32 = 0xc9ddd5;
+const STAR_WARM: u32 = 0xffe3bd;""",
+)
+for old, new in [
+    ("0x3f1f5c,\n                0xc45a7f,", "0x34443a,\n                0x71866b,"),
+    ("0x25123e,\n                0x7a3068,", "0x202b28,\n                0x4f796a,"),
+    ("0x100a1f,\n                0x2c1640,", "0x101716,\n                0x2e4d43,"),
+]:
+    text = text.replace(old, new)
+text = text.replace(
+    "fn the_scene_matches_the_website_pixel_for_pixel()",
+    "fn the_oxidum_scene_is_stable_pixel_for_pixel()",
+)
+text = text.replace(
+    """    /// The website's own code (horizon-scene.tsx's `rng`, `buildScene`, `renderPixels`, run in
+    /// Node at 1280 × 772) gave these: the first draws of seed 7, the scene's measures, each cloud's
+    /// row, size and mask sum, and an FNV-1a hash of its whole pixel buffer at 0 s and 5.3 s.""",
+    """    /// The deterministic scene geometry remains compatible with Horizon's reference model: seed 7,
+    /// the scene measures and cloud masks below must not drift. Oxidum deliberately owns a different
+    /// copper/patina colour language, so the final FNV-1a hashes are Oxidum's own pixel baselines at
+    /// 0 s and 5.3 s rather than Horizon's website palette.""",
+)
+
+text = text.replace(
+    """        assert_eq!(fnv(&composite(&m, 0.)), 0xa8f0b1c50b378d7a);
+        assert_eq!(fnv(&composite(&m, 5.3)), 0x6c05b4e8bdbbd1fc);""",
+    """        assert_eq!(
+            (fnv(&composite(&m, 0.)), fnv(&composite(&m, 5.3))),
+            (0xa6083e09d36176f5, 0x6aa55c5f08beae3d)
+        );""",
+)
+p.write_text(text)
+
+p = Path("launcher/src/sky.rs")
+text = p.read_text()
+night_old = """const NIGHT_ART: Colors = Colors {
+    sun: [0xffe28c, 0xffbf66, 0xff944f],
+    far: 0x3a1f5e,
+    near: 0x150f2e,
+    cloud: [0x3b2869, 0x6e3a7e, 0xc96a86],
+    lit: [0x5a3f8a, 0x9c5a92, 0xf7a98a],
+    shade: 0x2a1a4c,
+    star: 0xf4f2ff,
+};"""
+night_new = """const NIGHT_ART: Colors = Colors {
+    sun: [0xffd9a8, 0xebaa68, 0xeb9655],
+    far: 0x3f5f53,
+    near: 0x16201d,
+    cloud: [0x26352f, 0x447564, 0x71866b],
+    lit: [0x526f63, 0x78a391, 0xeb9655],
+    shade: 0x1b2925,
+    star: 0xe5eee9,
+};"""
+if night_new not in text:
+    if night_old not in text:
+        raise SystemExit("Oxidum overlay: NIGHT_ART changed upstream")
+    text = text.replace(night_old, night_new, 1)
+
+dawn_new = """const DAWN_ART: Colors = Colors {
+    sun: [0xfff7e8, 0xffdfbd, 0xf6bd87],
+    far: 0xb7c9bd,
+    near: 0x78978a,
+    cloud: [0xe9eee9, 0xe6e1d5, 0xf6dfc3],
+    lit: [0xffffff, 0xfff3df, 0xebc79b],
+    shade: 0xc7d2cb,
+    star: 0xffffff,
+};"""
+if dawn_new not in text:
+    dawn_variants = [
+        """const DAWN_ART: Colors = Colors {
+    sun: [0xfffbea, 0xffeac2, 0xffd3a1],
+    far: 0xdcd3ee,
+    near: 0xbaafdd,
+    cloud: [0xeef0fb, 0xfbeef3, 0xfff1e4],
+    lit: [0xffffff; 3],
+    shade: 0xd9cbe8,
+    star: 0xffffff,
+};""",
+        """const DAWN_ART: Colors = Colors {
+    sun: [0xfffbea, 0xffeac2, 0xffd3a1],
+    far: 0xbaa8de,
+    near: 0x8c79c6,
+    cloud: [0xeef0fb, 0xfbeef3, 0xfff1e4],
+    lit: [0xffffff; 3],
+    shade: 0xd9cbe8,
+    star: 0xffffff,
+};""",
+    ]
+    for old in dawn_variants:
+        if old in text:
+            text = text.replace(old, dawn_new, 1)
+            break
+    else:
+        raise SystemExit("Oxidum overlay: DAWN_ART changed upstream")
+p.write_text(text)
+
+p = Path("launcher/src/backend.rs")
+text = p.read_text()
+if "pub brand_palette_version: u8," not in text:
+    needle = "    pub accent: crate::themes::Accent,"
+    if needle not in text:
+        raise SystemExit("Oxidum overlay: Settings accent field changed upstream")
+    text = text.replace(
+        needle,
+        needle + "\n    /// One-time visual migration: 0 predates Oxidum's palette; 1 has migrated.\n"
+        "    #[serde(default)]\n    pub brand_palette_version: u8,",
+        1,
+    )
+p.write_text(text)
+
+p = Path("launcher/src/main.rs")
+text = p.read_text()
+if "settings.brand_palette_version == 0" not in text:
+    needle = "        let mut settings = Settings::load();"
+    if needle not in text:
+        raise SystemExit("Oxidum overlay: Settings load changed upstream")
+    migration = """        let mut settings = Settings::load();
+        if settings.brand_palette_version == 0 {
+            if settings.accent == horizon_launcher::themes::Accent::VIOLET {
+                settings.accent = horizon_launcher::themes::Accent::OXIDUM;
+            }
+            settings.brand_palette_version = 1;
+            let _ = settings.save();
+        }"""
+    text = text.replace(needle, migration, 1)
+p.write_text(text)
+
 # Linux desktop integration.
 p = Path("launcher/src/desktop.rs")
 text = p.read_text().replace("Horizon", "Oxidum")
