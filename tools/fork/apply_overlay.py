@@ -1239,11 +1239,21 @@ text = text.replace(
     "fn the_oxidum_scene_is_stable_pixel_for_pixel()",
 )
 text = text.replace(
+    """    /// The website's own code (horizon-scene.tsx's `rng`, `buildScene`, `renderPixels`, run in
+    /// Node at 1280 × 772) gave these: the first draws of seed 7, the scene's measures, each cloud's
+    /// row, size and mask sum, and an FNV-1a hash of its whole pixel buffer at 0 s and 5.3 s.""",
+    """    /// The deterministic scene geometry remains compatible with Horizon's reference model: seed 7,
+    /// the scene measures and cloud masks below must not drift. Oxidum deliberately owns a different
+    /// copper/patina colour language, so the final FNV-1a hashes are Oxidum's own pixel baselines at
+    /// 0 s and 5.3 s rather than Horizon's website palette.""",
+)
+
+text = text.replace(
     """        assert_eq!(fnv(&composite(&m, 0.)), 0xa8f0b1c50b378d7a);
         assert_eq!(fnv(&composite(&m, 5.3)), 0x6c05b4e8bdbbd1fc);""",
     """        assert_eq!(
             (fnv(&composite(&m, 0.)), fnv(&composite(&m, 5.3))),
-            (0xa8f0b1c50b378d7a, 0x6c05b4e8bdbbd1fc)
+            (0xa6083e09d36176f5, 0x6aa55c5f08beae3d)
         );""",
 )
 p.write_text(text)
