@@ -4,7 +4,6 @@
   "Prepare": "Pripremi",
   "Developer options": "Razvojne opcije",
   "{online} of {max} players": "{online} od {max} igrača",
-  "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.": "Minecraft {version} (Java Edition). Pri prvom pokretanju tipka „Igraj” preuzima igru s Mojanga za vaš račun, zajedno s potrebnom Javom.",
   "Close": "Zatvori",
   "Builds from GitHub. Each one installs into its own folder.": "Verzije s GitHuba. Svaka se instalira u vlastitu mapu.",
   "Copy…": "Kopiraj…",
@@ -1043,5 +1042,6 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Odaberi GPU koji prikazuje Oxidum. Automatski način zadržava način na koji je Oxidum pokrenut; određena kartica primjenjuje se pri sljedećem pokretanju Oxiduma.",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Zadani GPU za Rust Minecraft instance. Pojedina instanca može ga nadjačati u svojim postavkama pokretanja.",
   "Oxidum and its icon are in your desktop's menu.": "Oxidum i njegova ikona nalaze se u izborniku vaše radne površine.",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
+  "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum ponovno koristi kompatibilne datoteke iz Freesma, Halkyja ili Prisma ako su već instalirane; u suprotnom Play preuzima igru s Mojanga za račun koji je posjeduje."
 }

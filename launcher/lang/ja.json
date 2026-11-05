@@ -181,7 +181,6 @@
   "Keeps the {count} newest, the one in use and the ones your instances use. Deleted versions install again from the Versions page.": "最新の{count}個、現在使用中のもの、およびインスタンスで使用されているものを保持します。削除されたバージョンは「バージョン」ページから再インストールできます。",
   "Installed versions use {size}.": "インストール済みのバージョンで {size} を使用しています。",
   "{size} on disk": "ディスク上のサイズ：{size}",
-  "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.": "Minecraft {version}（Java Edition）。初回プレイ時に、必要なJavaとともにあなたのアカウント用にMojangからダウンロードされます。",
   "Move {name} to the Trash, with its worlds and settings? You can get it back from there.": "{name} をワールドと設定ごとゴミ箱に移動しますか？そこから復元できます。",
   "Delete…": "削除…",
   "Keep": "保持",
@@ -1043,5 +1042,6 @@
   "Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens.": "Oxidum の描画に使う GPU を選択します。自動では Oxidum の起動方法をそのまま使用し、特定のカードを選ぶと次回 Oxidum 起動時に適用されます。",
   "Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings.": "Rust Minecraft インスタンスの既定 GPU です。各インスタンスの起動設定で上書きできます。",
   "Oxidum and its icon are in your desktop's menu.": "デスクトップのメニューに Oxidum とアイコンを追加します。",
-  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read."
+  "Oxidum copper by default. Every colour keeps text as easy to read.": "Oxidum copper by default. Every colour keeps text as easy to read.",
+  "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition)。互換性のある Freesm、Halky、Prism のファイルがすでにインストールされている場合、Oxidum はそれらを再利用します。それ以外の場合は、所有権のあるアカウントで Mojang からゲームをダウンロードします。"
 }

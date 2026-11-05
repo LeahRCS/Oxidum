@@ -838,7 +838,7 @@ java_game = r'''pub fn java_game(
         start = loader.kind.profile_id(&loader.version, &game.minecraft);
     }
 
-    let (mut minecraft, mut local_files) = java_minecraft_root(&game.minecraft, &start);
+    let (minecraft, mut local_files) = java_minecraft_root(&game.minecraft, &start);
     let id = mojang::relative(&game.minecraft)?;
     let downloaded = |root: &Path, id: &str| -> Result<PathBuf, String> {
         Ok(root
@@ -864,36 +864,15 @@ java_game = r'''pub fn java_game(
         ));
     }
 
-    if let Some(loader) = &game.loader {
-        let profile = minecraft
-            .join("versions")
-            .join(mojang::relative(&start)?)
-            .join(format!("{start}.json"));
-        if !profile.is_file() {
-            let own = data_dir().join("minecraft");
-            if minecraft != own {
-                minecraft = own;
-                let base_marker = downloaded(&minecraft, &game.minecraft)?;
-                if !base_marker.is_file() {
-                    let listed = crate::minecraft_versions::load()?;
-                    let version = listed.find(&game.minecraft)?;
-                    download_version_for_owner(&version.id, &version.sha1, log)?;
-                    fs::write(&base_marker, "")
-                        .map_err(|e| format!("{}: {e}", base_marker.display()))?;
-                }
-            }
-            start = crate::loaders::install(loader, &game.minecraft, &minecraft, &get_bytes, log)?;
-            fs::write(downloaded(&minecraft, &start)?, "").map_err(|e| e.to_string())?;
-        }
-    }
-
-    let natives = minecraft.join("natives").join(&id);
-    let file = minecraft
+    // Select Java from the vanilla profile before installing a loader. Newer Horizon-Free
+    // loaders use this runtime for Forge/NeoForge installers.
+    let base_file = minecraft
         .join("versions")
-        .join(mojang::relative(&start)?)
-        .join(format!("{start}.json"));
-    let version = crate::java_launch::resolve(crate::java_launch::read(&file)?, &minecraft)?;
-    let need = crate::java::Need::of(&version);
+        .join(mojang::relative(&game.minecraft)?)
+        .join(format!("{}.json", game.minecraft));
+    let vanilla = crate::java_launch::read(&base_file)?;
+    let base_version = crate::java_launch::resolve(vanilla, &minecraft)?;
+    let need = crate::java::Need::of(&base_version);
     let found = crate::java::pick(
         &need,
         game.home.as_deref(),
@@ -907,6 +886,24 @@ java_game = r'''pub fn java_game(
             crate::java::install(&need, log)?
         }
     };
+
+    if let Some(loader) = &game.loader {
+        let profile = minecraft
+            .join("versions")
+            .join(mojang::relative(&start)?)
+            .join(format!("{start}.json"));
+        if !profile.is_file() {
+            start = __OXIDUM_LOADER_INSTALL__;
+            fs::write(downloaded(&minecraft, &start)?, "").map_err(|e| e.to_string())?;
+        }
+    }
+
+    let natives = minecraft.join("natives").join(&id);
+    let file = minecraft
+        .join("versions")
+        .join(mojang::relative(&start)?)
+        .join(format!("{start}.json"));
+    let version = crate::java_launch::resolve(crate::java_launch::read(&file)?, &minecraft)?;
 
     let player = if OFFLINE_PLAY && local_files {
         account::java_local_player()
@@ -934,6 +931,12 @@ java_game = r'''pub fn java_game(
     )
 }
 '''
+loaders_source = Path("launcher/src/loaders.rs").read_text()
+if "    java: &Path," in loaders_source:
+    loader_install = "crate::loaders::install(loader, &game.minecraft, &minecraft, &runtime.java(), &get_bytes, log)?"
+else:
+    loader_install = "crate::loaders::install(loader, &game.minecraft, &minecraft, &get_bytes, log)?"
+java_game = java_game.replace("__OXIDUM_LOADER_INSTALL__", loader_install)
 text = text[:start] + java_game + text[end:]
 p.write_text(text)
 
@@ -1496,6 +1499,60 @@ gpu_translation_keys = {
     }
 }
 
+java_translation_keys = {
+    "ar": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (إصدار Java). يعيد Oxidum استخدام ملفات Freesm أو Halky أو Prism المتوافقة عندما تكون مثبتة بالفعل؛ وإلا فسيقوم التشغيل بتنزيل اللعبة من Mojang باستخدام حساب يملكها."
+    },
+    "de": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum verwendet kompatible Freesm-, Halky- oder Prism-Dateien wieder, wenn sie bereits installiert sind; andernfalls lädt Spielen das Spiel von Mojang für ein Konto herunter, dem es gehört."
+    },
+    "es": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum reutiliza archivos compatibles de Freesm, Halky o Prism cuando ya están instalados; de lo contrario, Jugar descarga el juego desde Mojang para una cuenta que lo posea."
+    },
+    "fr": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (édition Java). Oxidum réutilise les fichiers compatibles de Freesm, Halky ou Prism lorsqu’ils sont déjà installés ; sinon, Jouer télécharge le jeu depuis Mojang pour un compte qui le possède."
+    },
+    "hi": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition)। यदि संगत Freesm, Halky या Prism फ़ाइलें पहले से इंस्टॉल हैं, तो Oxidum उनका पुनः उपयोग करता है; अन्यथा Play स्वामित्व वाले खाते के लिए Mojang से गेम डाउनलोड करता है।"
+    },
+    "hr": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum ponovno koristi kompatibilne datoteke iz Freesma, Halkyja ili Prisma ako su već instalirane; u suprotnom Play preuzima igru s Mojanga za račun koji je posjeduje."
+    },
+    "id": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum menggunakan kembali berkas Freesm, Halky, atau Prism yang kompatibel jika sudah terpasang; jika tidak, Play mengunduh game dari Mojang untuk akun yang memilikinya."
+    },
+    "ja": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition)。互換性のある Freesm、Halky、Prism のファイルがすでにインストールされている場合、Oxidum はそれらを再利用します。それ以外の場合は、所有権のあるアカウントで Mojang からゲームをダウンロードします。"
+    },
+    "ko": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). 호환되는 Freesm, Halky 또는 Prism 파일이 이미 설치되어 있으면 Oxidum이 이를 재사용합니다. 그렇지 않으면 소유 계정으로 Mojang에서 게임을 다운로드합니다."
+    },
+    "pl": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum ponownie wykorzystuje zgodne pliki Freesm, Halky lub Prism, jeśli są już zainstalowane; w przeciwnym razie Play pobiera grę z Mojang dla konta, które ją posiada."
+    },
+    "pt-br": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). O Oxidum reutiliza arquivos compatíveis do Freesm, Halky ou Prism quando já estão instalados; caso contrário, Jogar baixa o jogo da Mojang para uma conta que o possua."
+    },
+    "pt": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). O Oxidum reutiliza ficheiros compatíveis do Freesm, Halky ou Prism quando já estão instalados; caso contrário, Jogar transfere o jogo da Mojang para uma conta que o possua."
+    },
+    "ru": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum повторно использует совместимые файлы Freesm, Halky или Prism, если они уже установлены; иначе «Играть» загружает игру с Mojang для учётной записи, которой она принадлежит."
+    },
+    "tr": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum, uyumlu Freesm, Halky veya Prism dosyaları zaten kuruluysa bunları yeniden kullanır; aksi takdirde Oyna, oyuna sahip bir hesap için oyunu Mojang’dan indirir."
+    },
+    "uk": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum повторно використовує сумісні файли Freesm, Halky або Prism, якщо вони вже встановлені; інакше «Грати» завантажує гру з Mojang для облікового запису, якому вона належить."
+    },
+    "zh": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version}（Java 版）。如果已安装兼容的 Freesm、Halky 或 Prism 文件，Oxidum 会直接复用；否则，“游玩”会通过拥有该游戏的账户从 Mojang 下载游戏。"
+    }
+}
+obsolete_java_translation_keys = {
+    "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.",
+}
+
 obsolete_gpu_translation_keys = {
     "Mesa's DRI_PRIME=1, so Vulkan picks the other card.",
     "NVIDIA render offload: __NV_PRIME_RENDER_OFFLOAD and its Vulkan layer.",
@@ -1511,5 +1568,8 @@ for lang in Path("launcher/lang").glob("*.json"):
         branded[new_key] = value
     for key in obsolete_gpu_translation_keys:
         branded.pop(key, None)
+    for key in obsolete_java_translation_keys:
+        branded.pop(key, None)
     branded.update(gpu_translation_keys.get(lang.stem, {}))
+    branded.update(java_translation_keys.get(lang.stem, {}))
     lang.write_text(json.dumps(branded, ensure_ascii=False, indent=2) + "\n")
