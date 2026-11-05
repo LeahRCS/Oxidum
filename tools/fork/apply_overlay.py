@@ -803,11 +803,7 @@ pub trait Provider {
     /// Stable diagnostic name shown in the launch log.
     fn id(&self) -> &'static str;
 
-    fn acquire(
-        &self,
-        request: &Request<'_>,
-        log: &dyn Fn(String),
-    ) -> Result<Outcome, String>;
+    fn acquire(&self, request: &Request<'_>, log: &dyn Fn(String)) -> Result<Outcome, String>;
 }
 
 /// Provider registry.
@@ -931,11 +927,7 @@ fn java_minecraft_root(minecraft: &str, start: &str) -> (PathBuf, bool) {
     (own, false)
 }
 
-fn acquire_java_version(
-    id: &str,
-    manifest_sha1: &str,
-    log: &dyn Fn(String),
-) -> Result<(), String> {
+fn acquire_java_version(id: &str, manifest_sha1: &str, log: &dyn Fn(String)) -> Result<(), String> {
     let destination = data_dir().join("minecraft");
     let request = crate::java_acquisition::Request {
         minecraft: id,
