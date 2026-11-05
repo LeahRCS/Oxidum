@@ -1794,6 +1794,64 @@ async fn open_with_retry(
         Ok(opened) => Ok(opened),
     }
 }
+fn adapter_matches_selection(
+    info: &wgpu::AdapterInfo,
+    pci: Option<&str>,
+    wanted_name: Option<&str>,
+) -> bool {
+    // A reported PCI bus id is authoritative. Only fall back to the friendly name when
+    // the backend does not expose a PCI id for this adapter.
+    if let Some(wanted) = pci
+        && !info.device_pci_bus_id.is_empty()
+    {
+        return info.device_pci_bus_id.eq_ignore_ascii_case(wanted);
+    }
+    let info_name = info.name.to_ascii_lowercase();
+    wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name))
+}
+
+/// Chooses the physical GPU the launcher requested for this Rust instance. The PCI bus id is
+/// the stable match; the friendly name is a fallback for backends that do not report one.
+/// If a stale choice is no longer available, keep Horizon playable and fall back to wgpu's
+/// normal adapter selection, with a warning in the log.
+async fn request_chosen_adapter(
+    instance: &wgpu::Instance,
+    backends: wgpu::Backends,
+    surface: Option<&wgpu::Surface<'_>>,
+    options: &wgpu::RequestAdapterOptions<'_, '_>,
+) -> std::result::Result<wgpu::Adapter, wgpu::RequestAdapterError> {
+    let pci = std::env::var("HORIZON_GPU")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.strip_prefix("pci:").unwrap_or(&s).to_ascii_lowercase());
+    let wanted_name = std::env::var("HORIZON_GPU_NAME")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.to_ascii_lowercase());
+    if pci.is_none() && wanted_name.is_none() {
+        return instance.request_adapter(options).await;
+    }
+
+    let adapters = instance.enumerate_adapters(backends).await;
+    let chosen = adapters.into_iter().find(|adapter| {
+        if surface.is_some_and(|surface| !adapter.is_surface_supported(surface)) {
+            return false;
+        }
+        adapter_matches_selection(&adapter.get_info(), pci.as_deref(), wanted_name.as_deref())
+    });
+    if let Some(adapter) = chosen {
+        return Ok(adapter);
+    }
+
+    log::warn!(
+        "Horizon renderer: selected GPU {:?} ({:?}) is not available on {}; using automatic selection",
+        pci,
+        wanted_name,
+        backends_name(backends)
+    );
+    instance.request_adapter(options).await
+}
+
 /// Opens a device on `backends` alone: its surface, adapter and device, or what
 /// stopped it. `allow_nonconformant` is `open_with_retry`'s second try; a
 /// software adapter is taken only when `allow_cpu`.
@@ -1819,18 +1877,17 @@ async fn open_backend(
             Err(e) => return Err(NoDevice::Failed(format!("{name} surface: {e}"))),
         }
     };
-    let adapter = match instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::HighPerformance,
-            compatible_surface: surface.as_ref(),
-            force_fallback_adapter: false,
-            ..Default::default()
-        })
-        .await
-    {
-        Ok(adapter) => adapter,
-        Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
+    let options = wgpu::RequestAdapterOptions {
+        power_preference: wgpu::PowerPreference::HighPerformance,
+        compatible_surface: surface.as_ref(),
+        force_fallback_adapter: false,
+        ..Default::default()
     };
+    let adapter =
+        match request_chosen_adapter(&instance, backends, surface.as_ref(), &options).await {
+            Ok(adapter) => adapter,
+            Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
+        };
     // NoAdapter, so `open_with_retry` asks again: with the non-conformant
     // adapters shown, wgpu ranks a real GPU (hasvk on Ivy Bridge or Haswell)
     // above a software one. The second try's error is final either way.
@@ -10318,6 +10375,34 @@ mod tests {
             transient_saves_memory: None,
             limit_bucket: None,
         }
+    }
+
+    #[test]
+    fn explicit_gpu_selection_matches_pci_or_adapter_name() {
+        let mut info = adapter(wgpu::DeviceType::DiscreteGpu);
+        info.name = "NVIDIA GeForce GTX 1660 Ti".into();
+        info.device_pci_bus_id = "0000:01:00.0".into();
+        assert!(super::adapter_matches_selection(
+            &info,
+            Some("0000:01:00.0"),
+            None,
+        ));
+        assert!(super::adapter_matches_selection(
+            &info,
+            None,
+            Some("geforce gtx 1660 ti"),
+        ));
+        assert!(!super::adapter_matches_selection(
+            &info,
+            Some("0000:02:00.0"),
+            Some("nvidia geforce gtx 1660 ti"),
+        ));
+        info.device_pci_bus_id.clear();
+        assert!(super::adapter_matches_selection(
+            &info,
+            Some("0000:02:00.0"),
+            Some("geforce gtx 1660 ti"),
+        ));
     }
 
     #[test]

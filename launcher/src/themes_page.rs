@@ -155,7 +155,7 @@ impl Launcher {
                         cx.notify();
                     })),
             )
-            .child(self.field(Field::AccentHex, "#6b4bff", 96., cx).ml(px(4.)));
+            .child(self.field(Field::AccentHex, "#b85b29", 96., cx).ml(px(4.)));
         let control = div()
             .flex()
             .flex_col()

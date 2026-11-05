@@ -1,0 +1,668 @@
+diff --git a/crates/horizon-client-render/src/gfx.rs b/crates/horizon-client-render/src/gfx.rs
+--- a/crates/horizon-client-render/src/gfx.rs
++++ b/crates/horizon-client-render/src/gfx.rs
+@@ -1794,6 +1794,64 @@ async fn open_with_retry(
+         Ok(opened) => Ok(opened),
+     }
+ }
++fn adapter_matches_selection(
++    info: &wgpu::AdapterInfo,
++    pci: Option<&str>,
++    wanted_name: Option<&str>,
++) -> bool {
++    // A reported PCI bus id is authoritative. Only fall back to the friendly name when
++    // the backend does not expose a PCI id for this adapter.
++    if let Some(wanted) = pci
++        && !info.device_pci_bus_id.is_empty()
++    {
++        return info.device_pci_bus_id.eq_ignore_ascii_case(wanted);
++    }
++    let info_name = info.name.to_ascii_lowercase();
++    wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name))
++}
++
++/// Chooses the physical GPU the launcher requested for this Rust instance. The PCI bus id is
++/// the stable match; the friendly name is a fallback for backends that do not report one.
++/// If a stale choice is no longer available, keep Horizon playable and fall back to wgpu's
++/// normal adapter selection, with a warning in the log.
++async fn request_chosen_adapter(
++    instance: &wgpu::Instance,
++    backends: wgpu::Backends,
++    surface: Option<&wgpu::Surface<'_>>,
++    options: &wgpu::RequestAdapterOptions<'_, '_>,
++) -> std::result::Result<wgpu::Adapter, wgpu::RequestAdapterError> {
++    let pci = std::env::var("HORIZON_GPU")
++        .ok()
++        .filter(|s| !s.trim().is_empty())
++        .map(|s| s.strip_prefix("pci:").unwrap_or(&s).to_ascii_lowercase());
++    let wanted_name = std::env::var("HORIZON_GPU_NAME")
++        .ok()
++        .filter(|s| !s.trim().is_empty())
++        .map(|s| s.to_ascii_lowercase());
++    if pci.is_none() && wanted_name.is_none() {
++        return instance.request_adapter(options).await;
++    }
++
++    let adapters = instance.enumerate_adapters(backends).await;
++    let chosen = adapters.into_iter().find(|adapter| {
++        if surface.is_some_and(|surface| !adapter.is_surface_supported(surface)) {
++            return false;
++        }
++        adapter_matches_selection(&adapter.get_info(), pci.as_deref(), wanted_name.as_deref())
++    });
++    if let Some(adapter) = chosen {
++        return Ok(adapter);
++    }
++
++    log::warn!(
++        "Horizon renderer: selected GPU {:?} ({:?}) is not available on {}; using automatic selection",
++        pci,
++        wanted_name,
++        backends_name(backends)
++    );
++    instance.request_adapter(options).await
++}
++
+ /// Opens a device on `backends` alone: its surface, adapter and device, or what
+ /// stopped it. `allow_nonconformant` is `open_with_retry`'s second try; a
+ /// software adapter is taken only when `allow_cpu`.
+@@ -1819,18 +1877,17 @@ async fn open_backend(
+             Err(e) => return Err(NoDevice::Failed(format!("{name} surface: {e}"))),
+         }
+     };
+-    let adapter = match instance
+-        .request_adapter(&wgpu::RequestAdapterOptions {
+-            power_preference: wgpu::PowerPreference::HighPerformance,
+-            compatible_surface: surface.as_ref(),
+-            force_fallback_adapter: false,
+-            ..Default::default()
+-        })
+-        .await
+-    {
+-        Ok(adapter) => adapter,
+-        Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
++    let options = wgpu::RequestAdapterOptions {
++        power_preference: wgpu::PowerPreference::HighPerformance,
++        compatible_surface: surface.as_ref(),
++        force_fallback_adapter: false,
++        ..Default::default()
+     };
++    let adapter =
++        match request_chosen_adapter(&instance, backends, surface.as_ref(), &options).await {
++            Ok(adapter) => adapter,
++            Err(e) => return Err(NoDevice::NoAdapter(format!("{name}: {e}"))),
++        };
+     // NoAdapter, so `open_with_retry` asks again: with the non-conformant
+     // adapters shown, wgpu ranks a real GPU (hasvk on Ivy Bridge or Haswell)
+     // above a software one. The second try's error is final either way.
+@@ -10320,6 +10377,34 @@ mod tests {
+         }
+     }
+ 
++    #[test]
++    fn explicit_gpu_selection_matches_pci_or_adapter_name() {
++        let mut info = adapter(wgpu::DeviceType::DiscreteGpu);
++        info.name = "NVIDIA GeForce GTX 1660 Ti".into();
++        info.device_pci_bus_id = "0000:01:00.0".into();
++        assert!(super::adapter_matches_selection(
++            &info,
++            Some("0000:01:00.0"),
++            None,
++        ));
++        assert!(super::adapter_matches_selection(
++            &info,
++            None,
++            Some("geforce gtx 1660 ti"),
++        ));
++        assert!(!super::adapter_matches_selection(
++            &info,
++            Some("0000:02:00.0"),
++            Some("nvidia geforce gtx 1660 ti"),
++        ));
++        info.device_pci_bus_id.clear();
++        assert!(super::adapter_matches_selection(
++            &info,
++            Some("0000:02:00.0"),
++            Some("geforce gtx 1660 ti"),
++        ));
++    }
++
+     #[test]
+     fn software_occlusion_culling_is_opt_in() {
+         let cpu = adapter(wgpu::DeviceType::Cpu);
+
+diff --git a/launcher/src/backend.rs b/launcher/src/backend.rs
+--- a/launcher/src/backend.rs
++++ b/launcher/src/backend.rs
+@@ -3380,6 +3380,15 @@ pub struct Settings {
+     /// What the window does while the game runs. Stays by default.
+     #[serde(default)]
+     pub while_playing: WhilePlaying,
++    /// Linux: the physical GPU the launcher itself should use on its next GUI start, as
++    /// gpu::list reports it (a stable PCI id). None preserves exactly how Oxidum was started,
++    /// including an external prime-run wrapper.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub launcher_gpu: Option<String>,
++    /// Linux: the physical GPU Rust Minecraft instances use by default. Individual instances may
++    /// override it in their launch panel. None leaves adapter choice automatic/system-managed.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub rust_game_gpu: Option<String>,
+     /// The accent colour on top of the appearance (`themes::Accent`). Horizon's violet by default.
+     #[serde(default)]
+     pub accent: crate::themes::Accent,
+
+diff --git a/launcher/src/cli.rs b/launcher/src/cli.rs
+--- a/launcher/src/cli.rs
++++ b/launcher/src/cli.rs
+@@ -1485,8 +1485,13 @@ fn execute(command: Cmd, as_json: bool) -> Result<(), String> {
+             cmd.envs(accounts.look_env());
+             let vars = instance.vars(cmd.get_program());
+             cmd.envs(vars.iter().map(|(k, v)| (k, v)));
+-            horizon_launcher::launch::limit_memory(&mut cmd, &instance.launch);
+-            let played = attached(horizon_launcher::launch::wrap(cmd, &instance.launch));
++            let settings = backend::Settings::load();
++            let launch = instance
++                .launch
++                .with_default_gpu(settings.rust_game_gpu.as_deref());
++            horizon_launcher::launch::limit_memory(&mut cmd, &launch);
++            horizon_launcher::gpu::apply_to_command(&mut cmd, launch.gpu.as_deref(), true);
++            let played = attached(horizon_launcher::launch::wrap(cmd, &launch));
+             if let Err(e) = instances::record_play(&instance.id, started.elapsed()) {
+                 eprintln!("Play time not saved: {e}");
+             }
+
+diff --git a/launcher/src/gpu.rs b/launcher/src/gpu.rs
+new file mode 100644
+--- /dev/null
++++ b/launcher/src/gpu.rs
+@@ -0,0 +1,338 @@
++//! Linux graphics-adapter discovery and PRIME selection for Oxidum.
++//!
++//! The user-facing choice is a stable PCI id such as pci:0000:01:00.0 rather than "GPU 1":
++//! DRM card numbers can change across boots. Friendly names come from udev's PCI database when
++//! available; the PCI id and driver remain enough to identify a card when that database is absent.
++//!
++//! Rust game instances also receive HORIZON_GPU. The Horizon renderer matches that id against
++//! wgpu's adapter PCI bus id, so the game does not have to rely on PRIME ordering alone.
++
++use std::process::Command;
++
++/// The adapter id the Rust client reads when it chooses its wgpu adapter.
++pub const HORIZON_GPU: &str = "HORIZON_GPU";
++/// Friendly adapter name passed beside the PCI id as a fallback for backends that do not expose
++/// a PCI bus id through wgpu.
++pub const HORIZON_GPU_NAME: &str = "HORIZON_GPU_NAME";
++
++/// Environment variables used by Mesa/NVIDIA PRIME offload.
++pub const PRIME_ENV: [&str; 4] = [
++    "DRI_PRIME",
++    "__NV_PRIME_RENDER_OFFLOAD",
++    "__VK_LAYER_NV_optimus",
++    "__GLX_VENDOR_LIBRARY_NAME",
++];
++
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub struct Gpu {
++    /// Stable choice written to settings: pci:<domain>:<bus>:<device>.<function>.
++    pub id: String,
++    /// Human-readable adapter name, e.g. NVIDIA GeForce GTX 1660 Ti Mobile.
++    pub name: String,
++    /// PCI slot without the pci: prefix.
++    pub pci_slot: String,
++    pub vendor: u16,
++    pub device: u16,
++    /// Kernel driver, e.g. nvidia, amdgpu, i915.
++    pub driver: String,
++    /// The display/default VGA device according to sysfs.
++    pub boot_vga: bool,
++}
++
++impl Gpu {
++    /// Mesa's stable PCI selector for DRI_PRIME.
++    pub fn dri_prime(&self) -> String {
++        format!("pci-{}", self.pci_slot.replace([':', '.'], "_"))
++    }
++
++    fn proprietary_nvidia(&self) -> bool {
++        self.vendor == 0x10de && self.driver.starts_with("nvidia")
++    }
++}
++
++/// Physical DRM GPUs visible on this Linux system, default/display adapter first.
++pub fn list() -> Vec<Gpu> {
++    #[cfg(target_os = "linux")]
++    {
++        linux_gpus()
++    }
++    #[cfg(not(target_os = "linux"))]
++    {
++        Vec::new()
++    }
++}
++
++pub fn find(id: &str) -> Option<Gpu> {
++    list().into_iter().find(|gpu| gpu.id == id)
++}
++
++pub fn name(id: &str) -> String {
++    find(id).map_or_else(|| id.to_string(), |gpu| gpu.name)
++}
++
++/// Apply an explicit physical GPU to a child process. None means inherit the process environment.
++///
++/// rust_game also pins Horizon's own wgpu adapter by PCI id. PRIME remains useful for the
++/// window-system/driver side and for wrappers around the game.
++pub fn apply_to_command(cmd: &mut Command, gpu_id: Option<&str>, rust_game: bool) {
++    let Some(gpu_id) = gpu_id else {
++        return;
++    };
++    let Some(gpu) = find(gpu_id) else {
++        return;
++    };
++    for key in PRIME_ENV {
++        cmd.env_remove(key);
++    }
++    if rust_game {
++        cmd.env(HORIZON_GPU, &gpu.id);
++        cmd.env(HORIZON_GPU_NAME, &gpu.name);
++    }
++    for (key, value) in prime_env(&gpu) {
++        cmd.env(key, value);
++    }
++}
++
++/// Apply the launcher's saved GPU before GPUI/wgpu starts.
++///
++/// This is only called during process startup, before the GUI creates worker threads. None means
++/// preserve the environment exactly as Oxidum was started, including an external prime-run.
++#[cfg(target_os = "linux")]
++pub fn apply_to_current_process(gpu_id: Option<&str>) {
++    let Some(gpu_id) = gpu_id else {
++        return;
++    };
++    let gpus = list();
++    let Some(gpu) = gpus.iter().find(|gpu| gpu.id == gpu_id) else {
++        return;
++    };
++    let has_proprietary_nvidia = gpus.iter().any(Gpu::proprietary_nvidia);
++    for key in PRIME_ENV {
++        std::env::remove_var(key);
++    }
++    for (key, value) in launcher_env(gpu, has_proprietary_nvidia) {
++        std::env::set_var(key, value);
++    }
++}
++
++/// PRIME variables for a child whose renderer can also select its exact wgpu adapter.
++fn prime_env(gpu: &Gpu) -> Vec<(&'static str, String)> {
++    if gpu.proprietary_nvidia() {
++        vec![
++            ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
++            ("__VK_LAYER_NV_optimus", "NVIDIA_only".into()),
++            ("__GLX_VENDOR_LIBRARY_NAME", "nvidia".into()),
++        ]
++    } else {
++        vec![("DRI_PRIME", gpu.dri_prime())]
++    }
++}
++
++/// GPUI chooses its adapter internally, so an explicit launcher choice must constrain what Vulkan
++/// can see instead of relying on its HighPerformance preference. Mesa's trailing ! exposes only
++/// the selected device to Vulkan. NVIDIA's implicit Optimus layer can likewise hide NVIDIA when
++/// a non-NVIDIA adapter was chosen on a proprietary-NVIDIA hybrid system.
++fn launcher_env(gpu: &Gpu, has_proprietary_nvidia: bool) -> Vec<(&'static str, String)> {
++    if gpu.proprietary_nvidia() {
++        return prime_env(gpu);
++    }
++    let mut env = vec![("DRI_PRIME", format!("{}!", gpu.dri_prime()))];
++    if has_proprietary_nvidia && gpu.vendor != 0x10de {
++        env.push(("__NV_PRIME_RENDER_OFFLOAD", "1".into()));
++        env.push(("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()));
++    }
++    env
++}
++
++#[cfg(target_os = "linux")]
++fn linux_gpus() -> Vec<Gpu> {
++    use std::collections::BTreeSet;
++    use std::fs;
++
++    let Ok(entries) = fs::read_dir("/sys/class/drm") else {
++        return Vec::new();
++    };
++    let mut seen = BTreeSet::new();
++    let mut out = Vec::new();
++
++    for entry in entries.flatten() {
++        let card = entry.file_name().to_string_lossy().into_owned();
++        let Some(number) = card.strip_prefix("card") else {
++            continue;
++        };
++        if number.is_empty() || !number.chars().all(|c| c.is_ascii_digit()) {
++            continue;
++        }
++        let Ok(device_path) = fs::canonicalize(entry.path().join("device")) else {
++            continue;
++        };
++        let Some(slot) = device_path.file_name().and_then(|s| s.to_str()) else {
++            continue;
++        };
++        // Oxidum's Linux AppImage is x86_64; the physical GPUs we select are PCI devices.
++        if !slot.contains(':') || !slot.contains('.') || !seen.insert(slot.to_string()) {
++            continue;
++        }
++
++        let vendor = read_hex(&device_path.join("vendor")).unwrap_or(0);
++        let device = read_hex(&device_path.join("device")).unwrap_or(0);
++        let driver = fs::canonicalize(device_path.join("driver"))
++            .ok()
++            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
++            .unwrap_or_default();
++        let boot_vga = fs::read_to_string(device_path.join("boot_vga"))
++            .ok()
++            .is_some_and(|v| v.trim() == "1");
++        let name = gpu_name(slot, vendor, device);
++        out.push(Gpu {
++            id: format!("pci:{slot}"),
++            name,
++            pci_slot: slot.to_string(),
++            vendor,
++            device,
++            driver,
++            boot_vga,
++        });
++    }
++
++    out.sort_by_key(|gpu| (!gpu.boot_vga, gpu.pci_slot.clone()));
++    out
++}
++
++#[cfg(target_os = "linux")]
++fn read_hex(path: &std::path::Path) -> Option<u16> {
++    let text = std::fs::read_to_string(path).ok()?;
++    u16::from_str_radix(text.trim().trim_start_matches("0x"), 16).ok()
++}
++
++#[cfg(target_os = "linux")]
++fn gpu_name(slot: &str, vendor: u16, device: u16) -> String {
++    let model = udev_property(slot, "ID_MODEL_FROM_DATABASE")
++        .map(|m| bracket_name(&m).to_string())
++        .filter(|m| !m.trim().is_empty());
++    let vendor_name = match vendor {
++        0x10de => "NVIDIA".to_string(),
++        0x8086 => "Intel".to_string(),
++        0x1002 => "AMD".to_string(),
++        _ => udev_property(slot, "ID_VENDOR_FROM_DATABASE")
++            .unwrap_or_else(|| format!("{vendor:04x}")),
++    };
++
++    match model {
++        Some(model)
++            if model
++                .to_ascii_lowercase()
++                .starts_with(&vendor_name.to_ascii_lowercase()) =>
++        {
++            model
++        }
++        Some(model) => format!("{vendor_name} {model}"),
++        None => format!("{vendor_name} GPU [{vendor:04x}:{device:04x}]"),
++    }
++}
++
++#[cfg(target_os = "linux")]
++fn bracket_name(model: &str) -> &str {
++    match (model.find('['), model.rfind(']')) {
++        (Some(left), Some(right)) if left + 1 < right => &model[left + 1..right],
++        _ => model,
++    }
++}
++
++#[cfg(target_os = "linux")]
++fn udev_property(slot: &str, key: &str) -> Option<String> {
++    let text = std::fs::read_to_string(format!("/run/udev/data/+pci:{slot}")).ok()?;
++    let prefix = format!("E:{key}=");
++    text.lines()
++        .find_map(|line| line.strip_prefix(&prefix))
++        .map(str::to_string)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn mesa_selector_uses_the_stable_pci_slot() {
++        let gpu = Gpu {
++            id: "pci:0000:03:00.0".into(),
++            name: "AMD Radeon".into(),
++            pci_slot: "0000:03:00.0".into(),
++            vendor: 0x1002,
++            device: 0,
++            driver: "amdgpu".into(),
++            boot_vga: false,
++        };
++        assert_eq!(gpu.dri_prime(), "pci-0000_03_00_0");
++    }
++
++    #[test]
++    fn prime_environment_follows_the_selected_driver() {
++        let mut gpu = Gpu {
++            id: "pci:0000:03:00.0".into(),
++            name: "AMD Radeon".into(),
++            pci_slot: "0000:03:00.0".into(),
++            vendor: 0x1002,
++            device: 0,
++            driver: "amdgpu".into(),
++            boot_vga: false,
++        };
++        assert_eq!(prime_env(&gpu), [("DRI_PRIME", "pci-0000_03_00_0".into())]);
++
++        gpu.vendor = 0x10de;
++        gpu.driver = "nvidia".into();
++        assert_eq!(
++            prime_env(&gpu),
++            [
++                ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
++                ("__VK_LAYER_NV_optimus", "NVIDIA_only".into()),
++                ("__GLX_VENDOR_LIBRARY_NAME", "nvidia".into()),
++            ]
++        );
++
++        gpu.boot_vga = true;
++        assert_eq!(
++            prime_env(&gpu),
++            [
++                ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
++                ("__VK_LAYER_NV_optimus", "NVIDIA_only".into()),
++                ("__GLX_VENDOR_LIBRARY_NAME", "nvidia".into()),
++            ]
++        );
++    }
++
++    #[test]
++    fn launcher_environment_forces_the_named_mesa_adapter() {
++        let gpu = Gpu {
++            id: "pci:0000:00:02.0".into(),
++            name: "Intel Graphics".into(),
++            pci_slot: "0000:00:02.0".into(),
++            vendor: 0x8086,
++            device: 0,
++            driver: "i915".into(),
++            boot_vga: true,
++        };
++        assert_eq!(
++            launcher_env(&gpu, true),
++            [
++                ("DRI_PRIME", "pci-0000_00_02_0!".into()),
++                ("__NV_PRIME_RENDER_OFFLOAD", "1".into()),
++                ("__VK_LAYER_NV_optimus", "non_NVIDIA_only".into()),
++            ]
++        );
++        assert_eq!(
++            launcher_env(&gpu, false),
++            [("DRI_PRIME", "pci-0000_00_02_0!".into())]
++        );
++    }
++
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn database_names_prefer_the_model_in_brackets() {
++        assert_eq!(
++            bracket_name("TU116M [GeForce GTX 1660 Ti Mobile]"),
++            "GeForce GTX 1660 Ti Mobile"
++        );
++        assert_eq!(bracket_name("Iris Xe Graphics"), "Iris Xe Graphics");
++    }
++}
+
+diff --git a/launcher/src/launch.rs b/launcher/src/launch.rs
+--- a/launcher/src/launch.rs
++++ b/launcher/src/launch.rs
+@@ -46,8 +46,13 @@ pub struct Launch {
+     #[serde(default, skip_serializing_if = "is_false")]
+     pub mangohud: bool,
+     /// Linux: the dedicated graphics card of a computer with two (PRIME render offload).
++    /// Kept for settings written by older launchers; an explicit GPU below is more precise.
+     #[serde(default, skip_serializing_if = "is_false")]
+     pub dedicated_gpu: bool,
++    /// Linux: a physical GPU from gpu::list, stored by stable PCI id. None inherits the
++    /// environment exactly as the launcher started the game.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub gpu: Option<String>,
+ }
+ 
+ fn is_false(b: &bool) -> bool {
+@@ -250,6 +255,19 @@ impl Launch {
+         self.memory_limit_mb = limit;
+     }
+ 
++    /// Resolves this instance's GPU against Settings' Rust-game default. An explicit named GPU
++    /// wins; the older dedicated-GPU switch stays an override for backward compatibility; only an
++    /// instance with neither inherits the default.
++    pub fn with_default_gpu(&self, default: Option<&str>) -> Launch {
++        let mut out = self.clone();
++        if out.gpu.is_some() {
++            out.dedicated_gpu = false;
++        } else if !out.dedicated_gpu {
++            out.gpu = default.map(str::to_owned);
++        }
++        out
++    }
++
+     pub fn is_empty(&self) -> bool {
+         self == &Launch::default()
+     }
+@@ -287,7 +305,10 @@ impl Launch {
+         if self.mangohud {
+             parts.push(crate::i18n::tr("with MangoHud").to_string());
+         }
+-        if self.dedicated_gpu {
++        if let Some(gpu) = &self.gpu {
++            let name = crate::gpu::name(gpu);
++            parts.push(crate::i18n::trf("on {gpu}", &[("gpu", &name)]));
++        } else if self.dedicated_gpu {
+             parts.push(crate::i18n::tr("on the dedicated GPU").to_string());
+         }
+         match self.env.len() {
+
+diff --git a/launcher/src/launch/tests.rs b/launcher/src/launch/tests.rs
+--- a/launcher/src/launch/tests.rs
++++ b/launcher/src/launch/tests.rs
+@@ -84,6 +84,30 @@ fn the_players_own_memory_variable_wins() {
+     assert_eq!(memory_variable(&own).as_deref(), Some("4096"));
+ }
+ 
++#[test]
++fn instance_gpu_override_precedes_legacy_and_settings_default() {
++    let inherited = Launch::default().with_default_gpu(Some("pci:0000:01:00.0"));
++    assert_eq!(inherited.gpu.as_deref(), Some("pci:0000:01:00.0"));
++    assert!(!inherited.dedicated_gpu);
++
++    let legacy = Launch {
++        dedicated_gpu: true,
++        ..Launch::default()
++    }
++    .with_default_gpu(Some("pci:0000:02:00.0"));
++    assert_eq!(legacy.gpu, None);
++    assert!(legacy.dedicated_gpu);
++
++    let explicit = Launch {
++        dedicated_gpu: true,
++        gpu: Some("pci:0000:03:00.0".into()),
++        ..Launch::default()
++    }
++    .with_default_gpu(Some("pci:0000:04:00.0"));
++    assert_eq!(explicit.gpu.as_deref(), Some("pci:0000:03:00.0"));
++    assert!(!explicit.dedicated_gpu);
++}
++
+ #[test]
+ fn a_summary_says_what_runs() {
+     assert_eq!(Launch::default().summary(), None);
+
+diff --git a/launcher/src/lib.rs b/launcher/src/lib.rs
+--- a/launcher/src/lib.rs
++++ b/launcher/src/lib.rs
+@@ -13,6 +13,7 @@ pub mod game_app;
+ pub mod game_log;
+ pub mod github;
+ pub mod github_mods;
++pub mod gpu;
+ pub mod heads;
+ pub mod i18n;
+ pub mod import;
+
+diff --git a/launcher/src/main.rs b/launcher/src/main.rs
+--- a/launcher/src/main.rs
++++ b/launcher/src/main.rs
+@@ -1136,8 +1136,16 @@ impl Launcher {
+                             .map(|i| i.vars(cmd.get_program()))
+                             .unwrap_or_default();
+                         cmd.envs(self.client_vars.iter().map(|(k, v)| (k, v)));
+-                        let launch = instance.map(|i| i.launch).unwrap_or_default();
++                        let launch = instance
++                            .map(|i| i.launch)
++                            .unwrap_or_default()
++                            .with_default_gpu(self.settings.rust_game_gpu.as_deref());
+                         horizon_launcher::launch::limit_memory(&mut cmd, &launch);
++                        horizon_launcher::gpu::apply_to_command(
++                            &mut cmd,
++                            launch.gpu.as_deref(),
++                            true,
++                        );
+                         let cmd = horizon_launcher::launch::wrap(cmd, &launch);
+                         self.client_home = cmd.get_current_dir().map(|d| d.to_path_buf());
+                         match backend::spawn(Job::Client, cmd, self.tx.clone()) {
+@@ -3688,6 +3696,7 @@ impl Launcher {
+                         &t,
+                     ))
+                     .child(self.accent_row(cx))
++                    .children(self.launcher_gpu_row(cx))
+                     .child(self.home_background_row(cx))
+                     .child(self.language_row(cx))
+                     .child(self.while_playing_row(n + 3, cx))
+@@ -3701,6 +3710,7 @@ impl Launcher {
+                     .child(group("Network", "globe"))
+                     .child(self.proxy_row(n + 4, cx))
+                     .child(group("Game", "gamepad"))
++                    .children(self.rust_game_gpu_row(cx))
+                     .child(self.game_args_row(n + 5, cx))
+                     .child(group("AI", "terminal"))
+                     .child(self.no_ai_row(n + 6, cx))
+@@ -5271,10 +5281,15 @@ fn main() {
+     backend::cleanup_launcher_updates();
+     // What the launcher downloads goes through the player's proxy, if they set one: the parts
+     // that build their own agents (`horizon-port-pack`) are told before anything starts.
+-    horizon_launcher::proxy::announce(horizon_launcher::backend::Settings::load().proxy);
++    let startup_settings = horizon_launcher::backend::Settings::load();
++    horizon_launcher::proxy::announce(startup_settings.proxy.clone());
+     if let Some(code) = cli::run() {
+         std::process::exit(code);
+     }
++    // The launcher's GPU is chosen before GPUI/wgpu creates any graphics device. CLI launches are
++    // deliberately left alone, so this preference never leaks into a game started from the CLI.
++    #[cfg(target_os = "linux")]
++    horizon_launcher::gpu::apply_to_current_process(startup_settings.launcher_gpu.as_deref());
+     gpui_platform::application()
+         .with_assets(blocks::Assets)
+         .run(|cx: &mut App| {

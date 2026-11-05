@@ -461,13 +461,13 @@ impl Launcher {
                 &t,
             )
         };
-        // Horizon-free: the fork's repository, above the Discord button.
+        // Oxidum: this fork's repository, above the Discord button.
         if backend::OFFLINE_PLAY {
             foot = foot.child(div().flex().flex_col().mt(px(12.)).child(link(
-                "horizon-free",
-                "Horizon-Free",
+                "oxidum",
+                "Oxidum",
                 "globe-02",
-                "https://github.com/0CYBER/horizon-free".to_string(),
+                "https://github.com/LeahRCS/Oxidum".to_string(),
             )));
         }
         if !self.links.discord.is_empty() {

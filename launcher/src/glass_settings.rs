@@ -151,6 +151,132 @@ impl Launcher {
         current
     }
 
+    /// Linux: the physical GPU the launcher window itself uses on its next start.
+    pub(super) fn launcher_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
+        if !cfg!(target_os = "linux") {
+            return None;
+        }
+        let gpus = horizon_launcher::gpu::list();
+        if gpus.is_empty() {
+            return None;
+        }
+        let t = self.theme;
+        let current = self.settings.launcher_gpu.clone();
+        let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
+        choices = choices.child(
+            button(
+                "launcher-gpu-system",
+                "Automatic / system",
+                if current.is_none() {
+                    Kind::Primary
+                } else {
+                    Kind::Secondary
+                },
+                &t,
+            )
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.settings.launcher_gpu = None;
+                this.save_settings();
+                cx.notify();
+            })),
+        );
+        for (index, gpu) in gpus.into_iter().enumerate() {
+            let id = gpu.id.clone();
+            let selected = current.as_deref() == Some(id.as_str());
+            let label = match gpu.boot_vga {
+                true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
+                false => gpu.name.clone(),
+            };
+            choices = choices.child(
+                button(
+                    SharedString::from(format!("launcher-gpu-{index}")),
+                    label,
+                    if selected {
+                        Kind::Primary
+                    } else {
+                        Kind::Secondary
+                    },
+                    &t,
+                )
+                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                    this.settings.launcher_gpu = Some(id.clone());
+                    this.save_settings();
+                    cx.notify();
+                })),
+            );
+        }
+        Some(index_row(
+            0,
+            tr("Launcher graphics card"),
+            note("Choose the GPU that renders Oxidum. Automatic keeps the way Oxidum was started; a specific card is applied the next time Oxidum opens."),
+            Some(choices.into_any_element()),
+            &t,
+        ))
+    }
+
+    /// Linux: the physical GPU Rust Minecraft instances use unless an instance overrides it.
+    pub(super) fn rust_game_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
+        if !cfg!(target_os = "linux") {
+            return None;
+        }
+        let gpus = horizon_launcher::gpu::list();
+        if gpus.is_empty() {
+            return None;
+        }
+        let t = self.theme;
+        let current = self.settings.rust_game_gpu.clone();
+        let mut choices = div().flex().flex_col().items_stretch().gap(px(6.));
+        choices = choices.child(
+            button(
+                "rust-game-gpu-system",
+                "Automatic / system",
+                if current.is_none() {
+                    Kind::Primary
+                } else {
+                    Kind::Secondary
+                },
+                &t,
+            )
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.settings.rust_game_gpu = None;
+                this.save_settings();
+                cx.notify();
+            })),
+        );
+        for (index, gpu) in gpus.into_iter().enumerate() {
+            let id = gpu.id.clone();
+            let selected = current.as_deref() == Some(id.as_str());
+            let label = match gpu.boot_vga {
+                true => trf("{gpu} (system default)", &[("gpu", &gpu.name)]),
+                false => gpu.name.clone(),
+            };
+            choices = choices.child(
+                button(
+                    SharedString::from(format!("rust-game-gpu-{index}")),
+                    label,
+                    if selected {
+                        Kind::Primary
+                    } else {
+                        Kind::Secondary
+                    },
+                    &t,
+                )
+                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                    this.settings.rust_game_gpu = Some(id.clone());
+                    this.save_settings();
+                    cx.notify();
+                })),
+            );
+        }
+        Some(index_row(
+            0,
+            tr("Rust Minecraft graphics card"),
+            note("Default GPU for Rust Minecraft instances. An individual instance can override this in its launch settings."),
+            Some(choices.into_any_element()),
+            &t,
+        ))
+    }
+
     /// The cards, one per entry of [`SECTIONS`], in its order.
     fn glass_settings_sections(&mut self, b: Built, cx: &mut Context<Self>) -> Vec<Div> {
         let t = self.theme;
@@ -187,6 +313,7 @@ impl Launcher {
                 &t,
             ))
             .child(self.glass_accent_row(cx))
+            .children(self.launcher_gpu_row(cx))
             .child(self.home_background_row(cx))
             .child(self.language_row(cx))
             .child(self.while_playing_row(n, cx))
@@ -198,7 +325,9 @@ impl Launcher {
                 &t,
             ));
         let network = card().child(self.proxy_row(n, cx));
-        let game = card().child(self.game_args_row(n, cx));
+        let game = card()
+            .children(self.rust_game_gpu_row(cx))
+            .child(self.game_args_row(n, cx));
         let ai = card()
             .child(self.no_ai_row(n, cx))
             .children(self.agents_section(cx));
@@ -212,7 +341,7 @@ impl Launcher {
         let about = card()
             .child(index_row(
                 0,
-                "Horizon",
+                "Oxidum",
                 Some(div().child(b.horizon).into_any_element()),
                 b.horizon_action,
                 &t,
@@ -255,7 +384,7 @@ impl Launcher {
                     0,
                     tr("Applications menu"),
                     note(if self.settings.desktop_entry() {
-                        "Horizon and its icon are in your desktop's menu."
+                        "Oxidum and its icon are in your desktop's menu."
                     } else {
                         "Not in your desktop's menu."
                     }),

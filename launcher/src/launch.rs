@@ -46,8 +46,13 @@ pub struct Launch {
     #[serde(default, skip_serializing_if = "is_false")]
     pub mangohud: bool,
     /// Linux: the dedicated graphics card of a computer with two (PRIME render offload).
+    /// Kept for settings written by older launchers; an explicit GPU below is more precise.
     #[serde(default, skip_serializing_if = "is_false")]
     pub dedicated_gpu: bool,
+    /// Linux: a physical GPU from gpu::list, stored by stable PCI id. None inherits the
+    /// environment exactly as the launcher started the game.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gpu: Option<String>,
 }
 
 fn is_false(b: &bool) -> bool {
@@ -250,6 +255,19 @@ impl Launch {
         self.memory_limit_mb = limit;
     }
 
+    /// Resolves this instance's GPU against Settings' Rust-game default. An explicit named GPU
+    /// wins; the older dedicated-GPU switch stays an override for backward compatibility; only an
+    /// instance with neither inherits the default.
+    pub fn with_default_gpu(&self, default: Option<&str>) -> Launch {
+        let mut out = self.clone();
+        if out.gpu.is_some() {
+            out.dedicated_gpu = false;
+        } else if !out.dedicated_gpu {
+            out.gpu = default.map(str::to_owned);
+        }
+        out
+    }
+
     pub fn is_empty(&self) -> bool {
         self == &Launch::default()
     }
@@ -287,7 +305,10 @@ impl Launch {
         if self.mangohud {
             parts.push(crate::i18n::tr("with MangoHud").to_string());
         }
-        if self.dedicated_gpu {
+        if let Some(gpu) = &self.gpu {
+            let name = crate::gpu::name(gpu);
+            parts.push(crate::i18n::trf("on {gpu}", &[("gpu", &name)]));
+        } else if self.dedicated_gpu {
             parts.push(crate::i18n::tr("on the dedicated GPU").to_string());
         }
         match self.env.len() {

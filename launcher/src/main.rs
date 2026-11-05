@@ -1136,8 +1136,16 @@ impl Launcher {
                             .map(|i| i.vars(cmd.get_program()))
                             .unwrap_or_default();
                         cmd.envs(self.client_vars.iter().map(|(k, v)| (k, v)));
-                        let launch = instance.map(|i| i.launch).unwrap_or_default();
+                        let launch = instance
+                            .map(|i| i.launch)
+                            .unwrap_or_default()
+                            .with_default_gpu(self.settings.rust_game_gpu.as_deref());
                         horizon_launcher::launch::limit_memory(&mut cmd, &launch);
+                        horizon_launcher::gpu::apply_to_command(
+                            &mut cmd,
+                            launch.gpu.as_deref(),
+                            true,
+                        );
                         let cmd = horizon_launcher::launch::wrap(cmd, &launch);
                         self.client_home = cmd.get_current_dir().map(|d| d.to_path_buf());
                         match backend::spawn(Job::Client, cmd, self.tx.clone()) {
@@ -3688,6 +3696,7 @@ impl Launcher {
                         &t,
                     ))
                     .child(self.accent_row(cx))
+                    .children(self.launcher_gpu_row(cx))
                     .child(self.home_background_row(cx))
                     .child(self.language_row(cx))
                     .child(self.while_playing_row(n + 3, cx))
@@ -3701,6 +3710,7 @@ impl Launcher {
                     .child(group("Network", "globe"))
                     .child(self.proxy_row(n + 4, cx))
                     .child(group("Game", "gamepad"))
+                    .children(self.rust_game_gpu_row(cx))
                     .child(self.game_args_row(n + 5, cx))
                     .child(group("AI", "terminal"))
                     .child(self.no_ai_row(n + 6, cx))
@@ -5097,7 +5107,7 @@ impl Render for Launcher {
                 .line_height(px(theme::WORDMARK.px * 0.5))
                 .font_weight(FontWeight::BOLD)
                 .text_color(t.ink)
-                .children("HORIZON".chars().enumerate().map(|(i, c)| {
+                .children("OXIDUM".chars().enumerate().map(|(i, c)| {
                     let at = held - i as f32 * theme::STAGGER.as_secs_f32() * 1.5;
                     let p = ease_out_cubic(at / theme::ENTER.as_secs_f32());
                     div()
@@ -5271,10 +5281,15 @@ fn main() {
     backend::cleanup_launcher_updates();
     // What the launcher downloads goes through the player's proxy, if they set one: the parts
     // that build their own agents (`horizon-port-pack`) are told before anything starts.
-    horizon_launcher::proxy::announce(horizon_launcher::backend::Settings::load().proxy);
+    let startup_settings = horizon_launcher::backend::Settings::load();
+    horizon_launcher::proxy::announce(startup_settings.proxy.clone());
     if let Some(code) = cli::run() {
         std::process::exit(code);
     }
+    // The launcher's GPU is chosen before GPUI/wgpu creates any graphics device. CLI launches are
+    // deliberately left alone, so this preference never leaks into a game started from the CLI.
+    #[cfg(target_os = "linux")]
+    horizon_launcher::gpu::apply_to_current_process(startup_settings.launcher_gpu.as_deref());
     gpui_platform::application()
         .with_assets(blocks::Assets)
         .run(|cx: &mut App| {

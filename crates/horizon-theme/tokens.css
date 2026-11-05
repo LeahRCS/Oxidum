@@ -50,15 +50,15 @@
   --night-card-hi: rgba(255, 255, 255, 0.94);
   --night-stroke: rgba(59, 47, 120, 0.12);
   --night-rule: rgba(59, 47, 120, 0.1);
-  --glass-accent: #6b4bff;
-  --glass-accent-soft: #a9a9ff;
-  --glass-base: #1b1830;
+  --glass-accent: #b85b29;
+  --glass-accent-soft: #deaa91;
+  --glass-base: #272125;
   --glass-on-accent: #ffffff;
-  --glass-page: #0a0919;
-  --glass-live: #4ade80;
-  --glass-warn: #f2c46b;
+  --glass-page: #181a22;
+  --glass-live: #55ad93;
+  --glass-warn: #eb9655;
   --glass-danger: #ff8a8a;
-  --glass-plate: rgba(78, 76, 95, 0.267);
+  --glass-plate: rgba(88, 83, 86, 0.267);
   --glass-blur: 24px;
   --font: "Geist", ui-sans-serif, system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, monospace;
@@ -206,15 +206,15 @@
     --night-card-hi: rgba(35, 28, 74, 0.9);
     --night-stroke: rgba(185, 172, 255, 0.12);
     --night-rule: rgba(185, 172, 255, 0.1);
-    --glass-accent: #6b4bff;
-    --glass-accent-soft: #a9a9ff;
-    --glass-base: #1b1830;
+    --glass-accent: #b85b29;
+    --glass-accent-soft: #deaa91;
+    --glass-base: #272125;
     --glass-on-accent: #ffffff;
-    --glass-page: #0a0919;
-    --glass-live: #4ade80;
-    --glass-warn: #f2c46b;
+    --glass-page: #181a22;
+    --glass-live: #55ad93;
+    --glass-warn: #eb9655;
     --glass-danger: #ff8a8a;
-    --glass-plate: rgba(78, 76, 95, 0.267);
+    --glass-plate: rgba(88, 83, 86, 0.267);
     --glass-blur: 24px;
   }
 }
@@ -268,14 +268,14 @@
   --night-card-hi: rgba(35, 28, 74, 0.9);
   --night-stroke: rgba(185, 172, 255, 0.12);
   --night-rule: rgba(185, 172, 255, 0.1);
-  --glass-accent: #6b4bff;
-  --glass-accent-soft: #a9a9ff;
-  --glass-base: #1b1830;
+  --glass-accent: #b85b29;
+  --glass-accent-soft: #deaa91;
+  --glass-base: #272125;
   --glass-on-accent: #ffffff;
-  --glass-page: #0a0919;
-  --glass-live: #4ade80;
-  --glass-warn: #f2c46b;
+  --glass-page: #181a22;
+  --glass-live: #55ad93;
+  --glass-warn: #eb9655;
   --glass-danger: #ff8a8a;
-  --glass-plate: rgba(78, 76, 95, 0.267);
+  --glass-plate: rgba(88, 83, 86, 0.267);
   --glass-blur: 24px;
 }
