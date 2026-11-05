@@ -603,14 +603,17 @@ text = text[:start] + linux + text[end:]
 p.write_text(text)
 
 # Oxidum Home treats Rust Edition and Java Edition as real switchable launch targets.
+# Newer Horizon-Free already has this behavior with its current icon API; preserve that implementation
+# instead of replacing it with the compatibility version used for older upstream revisions.
 p = Path("launcher/src/glass_home.rs")
 text = p.read_text()
-text = text.replace(".child(self.edition_tabs(java.is_some()))", ".child(self.edition_tabs(java.is_some(), cx))")
-start = text.find("    /// The edition tabs")
-end = text.find("    /// The instance's icon and its name", start)
-if start < 0 or end < 0:
-    raise SystemExit("Oxidum overlay: Home edition tabs changed upstream")
-edition = r'''    /// The edition tabs switch between Rust Edition and Java Edition instances.
+if "fn switch_edition(" not in text or 'id("edition-java")' not in text:
+    text = text.replace(".child(self.edition_tabs(java.is_some()))", ".child(self.edition_tabs(java.is_some(), cx))")
+    start = text.find("    /// The edition tabs")
+    end = text.find("    /// The instance's icon and its name", start)
+    if start < 0 or end < 0:
+        raise SystemExit("Oxidum overlay: Home edition tabs changed upstream")
+    edition = r'''    /// The edition tabs switch between Rust Edition and Java Edition instances.
     fn edition_tabs(&mut self, java: bool, cx: &mut Context<Self>) -> Div {
         let grass = self.vanilla_icon().and_then(|path| {
             self.icon_image("mark:grass".into(), 18., false, move || {
@@ -713,7 +716,7 @@ edition = r'''    /// The edition tabs switch between Rust Edition and Java Edit
     }
 
 '''
-text = text[:start] + edition + text[end:]
+    text = text[:start] + edition + text[end:]
 p.write_text(text)
 
 # Java Edition can launch locally/offline from already-present files without importing secrets.
