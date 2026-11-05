@@ -488,8 +488,6 @@ impl Launcher {
         })
         .detach();
         let mut settings = Settings::load();
-        // Builds before Oxidum's identity pass persisted Horizon's violet even when the player
-        // never picked a colour. Migrate that legacy default once; later explicit choices stay.
         if settings.brand_palette_version == 0 {
             if settings.accent == horizon_launcher::themes::Accent::VIOLET {
                 settings.accent = horizon_launcher::themes::Accent::OXIDUM;
