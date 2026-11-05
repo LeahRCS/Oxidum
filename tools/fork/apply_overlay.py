@@ -602,6 +602,498 @@ linux = r'''    /// Linux launch helpers: GameMode and MangoHud, plus a physical
 text = text[:start] + linux + text[end:]
 p.write_text(text)
 
+# Oxidum Home treats Rust Edition and Java Edition as real switchable launch targets.
+# Newer Horizon-Free already has this behavior with its current icon API; preserve that implementation
+# instead of replacing it with the compatibility version used for older upstream revisions.
+p = Path("launcher/src/glass_home.rs")
+text = p.read_text()
+modern_edition_switch = (
+    "fn switch_edition(" in text
+    and ('id("edition-java")' in text or 'format!("edition-{label}")' in text)
+)
+if not modern_edition_switch:
+    text = text.replace(".child(self.edition_tabs(java.is_some()))", ".child(self.edition_tabs(java.is_some(), cx))")
+    start = text.find("    /// The edition tabs")
+    end = text.find("    /// The instance's icon and its name", start)
+    if start < 0 or end < 0:
+        raise SystemExit("Oxidum overlay: Home edition tabs changed upstream")
+    edition = r'''    /// The edition tabs switch between Rust Edition and Java Edition instances.
+    fn edition_tabs(&mut self, java: bool, cx: &mut Context<Self>) -> Div {
+        let grass = self.vanilla_icon().and_then(|path| {
+            self.icon_image("mark:grass".into(), 18., false, move || {
+                std::fs::read(&path).ok()
+            })
+        });
+        let tab = |label: &'static str, icon: AnyElement, open: bool| {
+            let d = div()
+                .flex()
+                .flex_none()
+                .items_center()
+                .gap(px(6.))
+                .h(px(32.))
+                .px(px(12.))
+                .rounded(px(radius::CONTROL))
+                .font_family(horizon_theme::glass::FONT)
+                .text_size(px(13.))
+                .line_height(px(18.))
+                .child(icon)
+                .child(tr(label));
+            if open {
+                d.bg(white(fill::ACTIVE))
+                    .font_weight(FontWeight::MEDIUM)
+                    .text_color(white(ink::FULL))
+            } else {
+                d.text_color(white(ink::BODY))
+            }
+        };
+        let java_icon = match grass {
+            Some(image) => gpui::img(image)
+                .flex_none()
+                .size(px(18.))
+                .rounded(px(5.))
+                .into_any_element(),
+            None => div().into_any_element(),
+        };
+        let rust = tab(
+            "Rust Edition",
+            ui::mark_tile(18., self.look.accent_soft).into_any_element(),
+            !java,
+        )
+        .id("edition-rust")
+        .cursor_pointer()
+        .hover(|s| s.bg(white(fill::ACTIVE)))
+        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+            this.switch_edition(false, cx);
+            cx.notify();
+        }));
+        let java = tab("Java Edition", java_icon, java)
+            .id("edition-java")
+            .cursor_pointer()
+            .hover(|s| s.bg(white(fill::ACTIVE)))
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.switch_edition(true, cx);
+                cx.notify();
+            }));
+        div()
+            .flex()
+            .items_center()
+            .gap(px(4.))
+            .child(rust)
+            .child(java)
+    }
+
+    fn switch_edition(&mut self, java: bool, cx: &mut Context<Self>) {
+        if self
+            .selected_instance()
+            .is_some_and(|instance| instance.java.is_some() == java)
+        {
+            return;
+        }
+        self.home_menu = HomeMenu::None;
+        self.picker_open = false;
+        let existing = self
+            .instances
+            .list
+            .iter()
+            .find(|instance| {
+                matches!(
+                    instance.kind,
+                    horizon_launcher::instances::Kind::Default
+                        | horizon_launcher::instances::Kind::Own
+                ) && instance.java.is_some() == java
+            })
+            .cloned();
+        if let Some(instance) = existing {
+            self.select_instance(&instance);
+            self.go(Page::Play);
+            return;
+        }
+        self.open_instance_dialog(None);
+        self.pick_kind(
+            if java {
+                new_instance::NewKind::Vanilla
+            } else {
+                new_instance::NewKind::Horizon
+            },
+            cx,
+        );
+    }
+
+'''
+    text = text[:start] + edition + text[end:]
+p.write_text(text)
+
+# Java Edition can launch locally/offline from already-present files without importing secrets.
+p = Path("launcher/src/account.rs")
+text = p.read_text()
+if "pub fn java_local_player()" not in text:
+    needle = "pub fn java_player() -> Result<crate::java_launch::Player, String> {"
+    if needle not in text:
+        raise SystemExit("Oxidum overlay: java_player changed upstream")
+    local_player = r'''/// A local/offline Java player for an already-installed game.
+pub fn java_local_player() -> crate::java_launch::Player {
+    use sha1::{Digest, Sha1};
+
+    let accounts = Accounts::load();
+    let name = accounts
+        .offline_selected
+        .clone()
+        .or_else(|| accounts.selected().map(|a| a.name.clone()))
+        .or_else(|| accounts.offline.first().cloned())
+        .unwrap_or_else(|| "Player".into());
+    let digest = Sha1::digest(format!("OxidumOffline:{name}").as_bytes());
+    let uuid = digest[..16]
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    crate::java_launch::Player {
+        name,
+        uuid,
+        token: "0".into(),
+        xuid: String::new(),
+    }
+}
+
+'''
+    text = text.replace(needle, local_player + needle, 1)
+p.write_text(text)
+
+# One explicit extension point for Java Edition acquisition. Providers populate Oxidum's own
+# Minecraft root; runtime, loaders and launch stay inside Oxidum.
+p = Path("launcher/src/lib.rs")
+text = p.read_text()
+if "pub mod java_acquisition;" not in text:
+    needle = "pub mod java;\n"
+    if needle not in text:
+        raise SystemExit("Oxidum overlay: Java module list changed upstream")
+    text = text.replace(needle, needle + "pub mod java_acquisition;\n", 1)
+p.write_text(text)
+
+Path("launcher/src/java_acquisition.rs").write_text(r'''//! Java Edition acquisition providers.
+//!
+//! This module is the single extension point between "the requested Java version is not present
+//! locally" and Oxidum's built-in official download fallback. A provider may populate Oxidum's own
+//! Minecraft root from any source it is allowed to use, then report `Acquired`. Runtime selection,
+//! loader installation and launching stay in Oxidum.
+//!
+//! To add another provider, implement [`Provider`] and register it in [`providers`]. The backend
+//! does not need to change.
+
+use crate::mojang;
+use std::path::Path;
+
+/// Everything a Java acquisition provider needs to prepare one vanilla Minecraft version.
+///
+/// Providers write into `destination`, which is Oxidum's own Minecraft root. They do not need to
+/// install Fabric/Quilt/Forge/NeoForge or a Java runtime; Oxidum does those after acquisition.
+pub struct Request<'a> {
+    pub minecraft: &'a str,
+    pub manifest_sha1: &'a str,
+    pub destination: &'a Path,
+}
+
+/// Whether a provider handled this request.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Outcome {
+    /// This provider does not handle the request; Oxidum tries the next one.
+    NotHandled,
+    /// The provider populated `Request::destination` with the requested vanilla game files.
+    Acquired,
+}
+
+/// A pluggable source for Java Edition game files.
+///
+/// A provider owns only acquisition. It should return `Acquired` after the requested version has
+/// been fully written to Oxidum's destination root, and `NotHandled` when another provider or the
+/// built-in fallback should be tried.
+pub trait Provider {
+    /// Stable diagnostic name shown in the launch log.
+    fn id(&self) -> &'static str;
+
+    fn acquire(&self, request: &Request<'_>, log: &dyn Fn(String)) -> Result<Outcome, String>;
+}
+
+/// Provider registry.
+///
+/// Extension point: add `Box::new(YourProvider)` here. Keeping this list in one module means a
+/// custom acquisition implementation never has to patch `backend::java_game`.
+fn providers() -> Vec<Box<dyn Provider>> {
+    vec![]
+}
+
+/// Gives every registered provider one chance to prepare the requested Java version.
+///
+/// Returns `true` only after a provider reports success and Oxidum verifies the minimum launcher
+/// layout it needs. `false` tells the caller to use the existing built-in fallback.
+pub fn acquire(request: &Request<'_>, log: &dyn Fn(String)) -> Result<bool, String> {
+    for provider in providers() {
+        match provider.acquire(request, log)? {
+            Outcome::NotHandled => continue,
+            Outcome::Acquired => {
+                validate_layout(request)?;
+                log(format!(
+                    "Java Edition {} acquired by provider {}",
+                    request.minecraft,
+                    provider.id()
+                ));
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
+fn validate_layout(request: &Request<'_>) -> Result<(), String> {
+    let version = mojang::relative(request.minecraft)?;
+    let version_dir = request.destination.join("versions").join(version);
+    let version_json = version_dir.join(format!("{}.json", request.minecraft));
+    let client_jar = version_dir.join(format!("{}.jar", request.minecraft));
+
+    for (path, label) in [
+        (request.destination.join("assets"), "assets"),
+        (request.destination.join("libraries"), "libraries"),
+        (version_json, "version JSON"),
+        (client_jar, "client jar"),
+    ] {
+        let present = if label == "assets" || label == "libraries" {
+            path.is_dir()
+        } else {
+            path.is_file()
+        };
+        if !present {
+            return Err(format!(
+                "Java acquisition provider reported success, but {label} is missing at {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
+}
+''')
+
+p = Path("launcher/src/backend.rs")
+text = p.read_text()
+if "fn prism_java_roots()" not in text:
+    doc = "/// The command that starts a Java instance's Minecraft, for an account that owns the game: its"
+    at = text.find(doc)
+    if at < 0:
+        raise SystemExit("Oxidum overlay: java_game documentation changed upstream")
+    helpers = r'''/// Roots from Prism-family launchers whose public game files Oxidum can reuse.
+fn prism_java_roots() -> Vec<PathBuf> {
+    let Some(home) = std::env::var_os("HOME").map(PathBuf::from) else {
+        return Vec::new();
+    };
+    let data = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home.join(".local/share"));
+    [
+        data.join("HalkyLauncher"),
+        data.join("FreesmLauncher"),
+        data.join("PrismLauncher"),
+        home.join(".var/app/org.HalkyLauncher.HalkyLauncher/data/HalkyLauncher"),
+        home.join(".var/app/org.freesmlauncher.FreesmLauncher/data/FreesmLauncher"),
+        home.join(".var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher"),
+    ]
+    .into_iter()
+    .filter(|path| path.is_dir())
+    .collect()
+}
+
+fn reusable_java_root(root: &Path, minecraft: &str, start_id: &str) -> bool {
+    let Ok(game) = mojang::relative(minecraft) else {
+        return false;
+    };
+    let Ok(start) = mojang::relative(start_id) else {
+        return false;
+    };
+    let base = root
+        .join("versions")
+        .join(&game)
+        .join(format!("{minecraft}.json"));
+    let profile = root
+        .join("versions")
+        .join(&start)
+        .join(format!("{start_id}.json"));
+    root.join("assets").is_dir()
+        && root.join("libraries").is_dir()
+        && base.is_file()
+        && profile.is_file()
+}
+
+fn java_minecraft_root(minecraft: &str, start: &str) -> (PathBuf, bool) {
+    let own = data_dir().join("minecraft");
+    if reusable_java_root(&own, minecraft, start) {
+        return (own, true);
+    }
+    if let Some(root) = prism_java_roots()
+        .into_iter()
+        .find(|root| reusable_java_root(root, minecraft, start))
+    {
+        return (root, true);
+    }
+    (own, false)
+}
+
+fn acquire_java_version(id: &str, manifest_sha1: &str, log: &dyn Fn(String)) -> Result<(), String> {
+    let destination = data_dir().join("minecraft");
+    let request = crate::java_acquisition::Request {
+        minecraft: id,
+        manifest_sha1,
+        destination: &destination,
+    };
+    if crate::java_acquisition::acquire(&request, log)? {
+        return Ok(());
+    }
+    download_version_for_owner(id, manifest_sha1, log).map(|_| ())
+}
+
+'''
+    text = text[:at] + helpers + text[at:]
+
+start = text.find("pub fn java_game(")
+end = text.find("\n/// What [", start)
+if start < 0 or end < 0:
+    raise SystemExit("Oxidum overlay: java_game changed upstream")
+java_game = r'''pub fn java_game(
+    instance: &crate::instances::Instance,
+    server: Option<&str>,
+    log: &dyn Fn(String),
+) -> Result<Command, String> {
+    let game = instance.java.as_ref().ok_or_else(|| {
+        format!(
+            "{} plays Oxidum's Rust Edition, not Minecraft: Java Edition",
+            instance.name
+        )
+    })?;
+
+    let mut start = game.minecraft.clone();
+    if let Some(loader) = &game.loader {
+        start = loader.kind.profile_id(&loader.version, &game.minecraft);
+    }
+
+    let (minecraft, mut local_files) = java_minecraft_root(&game.minecraft, &start);
+    let id = mojang::relative(&game.minecraft)?;
+    let downloaded = |root: &Path, id: &str| -> Result<PathBuf, String> {
+        Ok(root
+            .join("versions")
+            .join(mojang::relative(id)?)
+            .join(".downloaded"))
+    };
+
+    if !local_files {
+        let marker = downloaded(&minecraft, &game.minecraft)?;
+        if !marker.is_file() {
+            let listed = crate::minecraft_versions::load()?;
+            let version = listed.find(&game.minecraft)?;
+            acquire_java_version(&version.id, &version.sha1, log)?;
+            fs::write(&marker, "").map_err(|e| format!("{}: {e}", marker.display()))?;
+        }
+        local_files = true;
+    } else if minecraft != data_dir().join("minecraft") {
+        log(format!(
+            "Reusing Minecraft {} files from {}",
+            game.minecraft,
+            minecraft.display()
+        ));
+    }
+
+    // Select Java from the vanilla profile before installing a loader. Newer Horizon-Free
+    // loaders use this runtime for Forge/NeoForge installers.
+    let base_file = minecraft
+        .join("versions")
+        .join(mojang::relative(&game.minecraft)?)
+        .join(format!("{}.json", game.minecraft));
+    let vanilla = crate::java_launch::read(&base_file)?;
+    let base_version = crate::java_launch::resolve(vanilla, &minecraft)?;
+    let need = crate::java::Need::of(&base_version);
+    let found = crate::java::pick(
+        &need,
+        game.home.as_deref(),
+        &crate::java::mojang_runtimes(&crate::java::runtimes_dir()),
+        &crate::java::installed(),
+    )?;
+    let runtime = match found {
+        Some(runtime) => runtime,
+        None => {
+            log(format!("Downloading Java {} from Mojang", need.major));
+            crate::java::install(&need, log)?
+        }
+    };
+
+    if let Some(loader) = &game.loader {
+        let profile = minecraft
+            .join("versions")
+            .join(mojang::relative(&start)?)
+            .join(format!("{start}.json"));
+        if !profile.is_file() {
+            start = __OXIDUM_LOADER_INSTALL__;
+            fs::write(downloaded(&minecraft, &start)?, "").map_err(|e| e.to_string())?;
+        }
+    }
+
+    let natives = minecraft.join("natives").join(&id);
+    let file = minecraft
+        .join("versions")
+        .join(mojang::relative(&start)?)
+        .join(format!("{start}.json"));
+    let version = crate::java_launch::resolve(crate::java_launch::read(&file)?, &minecraft)?;
+
+    let player = if OFFLINE_PLAY && local_files {
+        account::java_local_player()
+    } else {
+        account::java_player()?
+    };
+    let jvm_args: Vec<String> = game.jvm_args.split_whitespace().map(String::from).collect();
+    fs::create_dir_all(&instance.home).map_err(|e| format!("{}: {e}", instance.home.display()))?;
+    crate::java_launch::command(
+        &version,
+        &crate::java_launch::Launch {
+            minecraft: &minecraft,
+            game_dir: &instance.home,
+            natives: &natives,
+            java: &runtime.java(),
+            memory_mb: game
+                .memory_mb
+                .unwrap_or(crate::instances::DEFAULT_MEMORY_MB),
+            jvm_args: &jvm_args,
+            player: &player,
+            os: crate::java_launch::os_name(),
+            window: game.window,
+            server,
+        },
+    )
+}
+'''
+loaders_source = Path("launcher/src/loaders.rs").read_text()
+if "    java: &Path," in loaders_source:
+    loader_install = """crate::loaders::install(
+                loader,
+                &game.minecraft,
+                &minecraft,
+                &runtime.java(),
+                &get_bytes,
+                log,
+            )?"""
+else:
+    loader_install = """crate::loaders::install(
+                loader,
+                &game.minecraft,
+                &minecraft,
+                &get_bytes,
+                log,
+            )?"""
+java_game = java_game.replace("__OXIDUM_LOADER_INSTALL__", loader_install)
+text = text[:start] + java_game + text[end:]
+p.write_text(text)
+
+p = Path("launcher/src/main.rs")
+text = p.read_text()
+text = text.replace(
+    "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.",
+    "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.",
+)
+p.write_text(text)
+
 # Oxidum's default colour language: copper action/focus, patina success.
 p = Path("crates/horizon-theme/src/night.rs")
 text = p.read_text()
@@ -1153,6 +1645,60 @@ gpu_translation_keys = {
     }
 }
 
+java_translation_keys = {
+    "ar": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (إصدار Java). يعيد Oxidum استخدام ملفات Freesm أو Halky أو Prism المتوافقة عندما تكون مثبتة بالفعل؛ وإلا فسيقوم التشغيل بتنزيل اللعبة من Mojang باستخدام حساب يملكها."
+    },
+    "de": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum verwendet kompatible Freesm-, Halky- oder Prism-Dateien wieder, wenn sie bereits installiert sind; andernfalls lädt Spielen das Spiel von Mojang für ein Konto herunter, dem es gehört."
+    },
+    "es": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum reutiliza archivos compatibles de Freesm, Halky o Prism cuando ya están instalados; de lo contrario, Jugar descarga el juego desde Mojang para una cuenta que lo posea."
+    },
+    "fr": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (édition Java). Oxidum réutilise les fichiers compatibles de Freesm, Halky ou Prism lorsqu’ils sont déjà installés ; sinon, Jouer télécharge le jeu depuis Mojang pour un compte qui le possède."
+    },
+    "hi": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition)। यदि संगत Freesm, Halky या Prism फ़ाइलें पहले से इंस्टॉल हैं, तो Oxidum उनका पुनः उपयोग करता है; अन्यथा Play स्वामित्व वाले खाते के लिए Mojang से गेम डाउनलोड करता है।"
+    },
+    "hr": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum ponovno koristi kompatibilne datoteke iz Freesma, Halkyja ili Prisma ako su već instalirane; u suprotnom Play preuzima igru s Mojanga za račun koji je posjeduje."
+    },
+    "id": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum menggunakan kembali berkas Freesm, Halky, atau Prism yang kompatibel jika sudah terpasang; jika tidak, Play mengunduh game dari Mojang untuk akun yang memilikinya."
+    },
+    "ja": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition)。互換性のある Freesm、Halky、Prism のファイルがすでにインストールされている場合、Oxidum はそれらを再利用します。それ以外の場合は、所有権のあるアカウントで Mojang からゲームをダウンロードします。"
+    },
+    "ko": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). 호환되는 Freesm, Halky 또는 Prism 파일이 이미 설치되어 있으면 Oxidum이 이를 재사용합니다. 그렇지 않으면 소유 계정으로 Mojang에서 게임을 다운로드합니다."
+    },
+    "pl": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum ponownie wykorzystuje zgodne pliki Freesm, Halky lub Prism, jeśli są już zainstalowane; w przeciwnym razie Play pobiera grę z Mojang dla konta, które ją posiada."
+    },
+    "pt-br": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). O Oxidum reutiliza arquivos compatíveis do Freesm, Halky ou Prism quando já estão instalados; caso contrário, Jogar baixa o jogo da Mojang para uma conta que o possua."
+    },
+    "pt": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). O Oxidum reutiliza ficheiros compatíveis do Freesm, Halky ou Prism quando já estão instalados; caso contrário, Jogar transfere o jogo da Mojang para uma conta que o possua."
+    },
+    "ru": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum повторно использует совместимые файлы Freesm, Halky или Prism, если они уже установлены; иначе «Играть» загружает игру с Mojang для учётной записи, которой она принадлежит."
+    },
+    "tr": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum, uyumlu Freesm, Halky veya Prism dosyaları zaten kuruluysa bunları yeniden kullanır; aksi takdirde Oyna, oyuna sahip bir hesap için oyunu Mojang’dan indirir."
+    },
+    "uk": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version} (Java Edition). Oxidum повторно використовує сумісні файли Freesm, Halky або Prism, якщо вони вже встановлені; інакше «Грати» завантажує гру з Mojang для облікового запису, якому вона належить."
+    },
+    "zh": {
+        "Minecraft {version} (Java Edition). Oxidum reuses compatible Freesm, Halky or Prism files when they are already installed; otherwise Play downloads the game from Mojang for an owning account.": "Minecraft {version}（Java 版）。如果已安装兼容的 Freesm、Halky 或 Prism 文件，Oxidum 会直接复用；否则，“游玩”会通过拥有该游戏的账户从 Mojang 下载游戏。"
+    }
+}
+obsolete_java_translation_keys = {
+    "Minecraft {version} (Java Edition). Play downloads it from Mojang for your account the first time, with the Java it needs.",
+}
+
 obsolete_gpu_translation_keys = {
     "Mesa's DRI_PRIME=1, so Vulkan picks the other card.",
     "NVIDIA render offload: __NV_PRIME_RENDER_OFFLOAD and its Vulkan layer.",
@@ -1168,5 +1714,8 @@ for lang in Path("launcher/lang").glob("*.json"):
         branded[new_key] = value
     for key in obsolete_gpu_translation_keys:
         branded.pop(key, None)
+    for key in obsolete_java_translation_keys:
+        branded.pop(key, None)
     branded.update(gpu_translation_keys.get(lang.stem, {}))
+    branded.update(java_translation_keys.get(lang.stem, {}))
     lang.write_text(json.dumps(branded, ensure_ascii=False, indent=2) + "\n")

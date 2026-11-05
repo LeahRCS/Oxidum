@@ -2091,6 +2091,33 @@ fn session_file(game_home: &Path, pass: Launch) -> (Option<PathBuf>, Option<Stri
 /// ([`launch`]): the selected account when it owns the game, else one that does. With no answer
 /// from the services, an account that owned it plays with its last token. Mojang's game takes the
 /// token on its command line, as Mojang's launcher gives it; that command is never logged.
+/// A local/offline Java player. This never imports or reuses another launcher's secrets:
+/// it only gives an already-installed game a stable local identity. Downloads still go through
+/// the owner-gated path in backend::download_version_for_owner.
+pub fn java_local_player() -> crate::java_launch::Player {
+    use sha1::{Digest, Sha1};
+
+    let accounts = Accounts::load();
+    let name = accounts
+        .offline_selected
+        .clone()
+        .or_else(|| accounts.selected().map(|a| a.name.clone()))
+        .or_else(|| accounts.offline.first().cloned())
+        .unwrap_or_else(|| "Player".into());
+
+    let digest = Sha1::digest(format!("OxidumOffline:{name}").as_bytes());
+    let uuid = digest[..16]
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+
+    crate::java_launch::Player {
+        name,
+        uuid,
+        token: "0".into(),
+        xuid: String::new(),
+    }
+}
 pub fn java_player() -> Result<crate::java_launch::Player, String> {
     let mut accounts = Accounts::load();
     let player = java_player_with(

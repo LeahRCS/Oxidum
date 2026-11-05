@@ -55,6 +55,21 @@ require("launcher/src/glass_settings.rs", "fn launcher_gpu_row", "launcher GPU p
 require("launcher/src/glass_settings.rs", "fn rust_game_gpu_row", "Rust default GPU picker")
 require("launcher/src/launch_page.rs", "fn pick_instance_gpu", "per-instance GPU persistence")
 require("launcher/src/launch_page.rs", "instance-gpu-system", "per-instance GPU selector UI")
+require("launcher/src/glass_home.rs", "fn switch_edition", "Rust/Java edition switch")
+home = read("launcher/src/glass_home.rs")
+if 'id("edition-java")' in home or 'format!("edition-{label}")' in home:
+    print("[ok] Java Edition tab action")
+else:
+    failures.append(
+        "Java Edition tab action: launcher/src/glass_home.rs has neither a literal Java tab id "
+        "nor the modern edition-{label} id"
+    )
+require("launcher/src/account.rs", "pub fn java_local_player()", "local Java player identity")
+require("launcher/src/lib.rs", "pub mod java_acquisition;", "Java acquisition module exported")
+require("launcher/src/java_acquisition.rs", "pub trait Provider", "Java acquisition provider hook")
+require("launcher/src/backend.rs", "fn acquire_java_version(", "Java acquisition dispatch")
+require("launcher/src/backend.rs", "fn prism_java_roots()", "Freesm/Halky/Prism Java file discovery")
+require("launcher/src/backend.rs", "account::java_local_player()", "offline Java launch from local files")
 require("crates/horizon-theme/src/night.rs", "accent: 0xb85b29", "copper Night accent")
 require("crates/horizon-theme/src/glass.rs", "pub const ACCENT: u32 = 0xb85b29;", "copper Glass accent")
 require("crates/horizon-theme/src/glass.rs", "pub const LIVE: u32 = 0x55ad93;", "patina live/success")
