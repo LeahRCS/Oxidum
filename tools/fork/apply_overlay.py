@@ -1234,6 +1234,18 @@ for old, new in [
     ("0x100a1f,\n                0x2c1640,", "0x101716,\n                0x2e4d43,"),
 ]:
     text = text.replace(old, new)
+text = text.replace(
+    "fn the_scene_matches_the_website_pixel_for_pixel()",
+    "fn the_oxidum_scene_is_stable_pixel_for_pixel()",
+)
+text = text.replace(
+    """        assert_eq!(fnv(&composite(&m, 0.)), 0xa8f0b1c50b378d7a);
+        assert_eq!(fnv(&composite(&m, 5.3)), 0x6c05b4e8bdbbd1fc);""",
+    """        assert_eq!(
+            (fnv(&composite(&m, 0.)), fnv(&composite(&m, 5.3))),
+            (0xa8f0b1c50b378d7a, 0x6c05b4e8bdbbd1fc)
+        );""",
+)
 p.write_text(text)
 
 p = Path("launcher/src/sky.rs")

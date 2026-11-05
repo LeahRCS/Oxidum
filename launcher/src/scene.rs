@@ -1193,7 +1193,7 @@ mod tests {
     /// Node at 1280 × 772) gave these: the first draws of seed 7, the scene's measures, each cloud's
     /// row, size and mask sum, and an FNV-1a hash of its whole pixel buffer at 0 s and 5.3 s.
     #[test]
-    fn the_scene_matches_the_website_pixel_for_pixel() {
+    fn the_oxidum_scene_is_stable_pixel_for_pixel() {
         let mut r = Rng(7);
         let draws: Vec<f64> = (0..3).map(|_| r.next()).collect();
         assert_eq!(
@@ -1228,8 +1228,10 @@ mod tests {
                 (139, 36, 6, 225)
             ]
         );
-        assert_eq!(fnv(&composite(&m, 0.)), 0xa8f0b1c50b378d7a);
-        assert_eq!(fnv(&composite(&m, 5.3)), 0x6c05b4e8bdbbd1fc);
+        assert_eq!(
+            (fnv(&composite(&m, 0.)), fnv(&composite(&m, 5.3))),
+            (0xa8f0b1c50b378d7a, 0x6c05b4e8bdbbd1fc)
+        );
     }
 
     /// The pixel layer as the website's buffer holds it (`-1` empty), built from what this module
